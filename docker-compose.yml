@@ -1,0 +1,48 @@
+version: '3.8'
+
+services:
+  voicevox:
+    image: voicevox/voicevox_engine:cpu-ubuntu20.04-latest
+    ports:
+      - "50021:50021"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:50021/docs"]
+      interval: 5s
+      timeout: 10s
+      retries: 5
+
+  ollama:
+    image: ollama/ollama:latest
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:11434/api/tags"]
+      interval: 5s
+      timeout: 10s
+      retries: 5
+
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    volumes:
+      - .:/app
+      - poetry_cache:/root/.cache/pypoetry
+    ports:
+      - "5000:5000"
+    environment:
+      - FLASK_APP=backend/app/__init__.py
+      - FLASK_ENV=development
+      - VOICEVOX_URL=http://voicevox:50021
+      - OLLAMA_URL=http://ollama:11434
+    depends_on:
+      voicevox:
+        condition: service_healthy
+      ollama:
+        condition: service_healthy
+
+volumes:
+  ollama_data:
+  poetry_cache: 
