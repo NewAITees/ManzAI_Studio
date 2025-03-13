@@ -1,0 +1,9 @@
+.cursorignore
+poetry.lock
+config/
+.venv/
+.gitignore
+.git/
+.gitignore
+.gitignore
+
