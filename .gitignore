@@ -1,0 +1,23 @@
+# Python related
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+.env
+.venv/
+
+# Poetry
+poetry.lock
+dist/
+
+# Project specific
+src/backend/models/
+
+# Version control
+.git/
+
+
+
+
+
