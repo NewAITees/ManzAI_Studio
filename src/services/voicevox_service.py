@@ -1,8 +1,11 @@
+import os
+import time
+import logging
 import requests
 from typing import Dict, List, Any, Optional, Tuple
 import json
-import os
-import time
+
+logger = logging.getLogger(__name__)
 
 class VoiceVoxServiceError(Exception):
     """VoiceVoxサービスのエラーを表す例外クラス"""
@@ -70,15 +73,15 @@ class VoiceVoxService:
         except Exception as e:
             raise VoiceVoxServiceError(f"Unexpected error: {str(e)}")
     
-    def get_timing_data(self, text: str, speaker_id: int = 1) -> Dict[str, List[Dict[str, Any]]]:
-        """指定されたテキストのタイミングデータを取得
+    def get_timing_data(self, text: str, speaker_id: int = 1) -> Dict[str, Any]:
+        """テキストのタイミングデータを取得
         
         Args:
             text (str): タイミングデータを取得するテキスト
             speaker_id (int): 話者ID
             
         Returns:
-            Dict[str, List[Dict[str, Any]]]: タイミングデータ
+            Dict[str, Any]: タイミングデータ
             
         Raises:
             ValueError: テキストが空の場合、または話者IDが不正な場合
@@ -91,15 +94,32 @@ class VoiceVoxService:
             raise ValueError("invalid speaker id")
         
         try:
-            response = requests.post(
+            # 音声合成用のクエリを作成（アクセント句データを含む）
+            query_response = requests.post(
+                f"{self.base_url}/audio_query",
+                params={"text": text, "speaker": speaker_id}
+            )
+            
+            if query_response.status_code != 200:
+                raise VoiceVoxServiceError(f"Failed to create audio query: {query_response.status_code}")
+            
+            query_data = query_response.json()
+            
+            # アクセント句データを取得（モーラ単位のタイミング情報を含む）
+            accent_response = requests.post(
                 f"{self.base_url}/accent_phrases",
                 params={"text": text, "speaker": speaker_id}
             )
             
-            if response.status_code != 200:
-                raise VoiceVoxServiceError(f"Failed to get timing data: {response.status_code}")
+            if accent_response.status_code != 200:
+                raise VoiceVoxServiceError(f"Failed to get accent phrases: {accent_response.status_code}")
             
-            return response.json()
+            accent_data = accent_response.json()
+            
+            # アクセント句データを音声合成クエリに統合
+            query_data["accent_phrases"] = accent_data
+            
+            return query_data
             
         except requests.exceptions.ConnectionError:
             raise VoiceVoxServiceError("Connection error: Failed to connect to VoiceVox service")
@@ -197,4 +217,38 @@ class VoiceVoxService:
         except VoiceVoxServiceError:
             raise
         except Exception as e:
-            raise VoiceVoxServiceError(f"Unexpected error: {str(e)}") 
+            raise VoiceVoxServiceError(f"Unexpected error: {str(e)}")
+
+    def list_speakers(self) -> List[Dict[str, Any]]:
+        """
+        VoiceVoxサービスで利用可能な話者のリストを取得します。
+        
+        Returns:
+            利用可能な話者のリスト
+        
+        Raises:
+            Exception: APIリクエストに失敗した場合
+        """
+        try:
+            response = requests.get(f"{self.base_url}/speakers")
+            response.raise_for_status()
+            
+            speakers = response.json()
+            logger.info(f"Successfully retrieved {len(speakers)} speakers from VoiceVox service")
+            return speakers
+            
+        except requests.exceptions.HTTPError as e:
+            logger.error(f"HTTP error listing speakers: {e}")
+            raise Exception(f"Connection error: {e}")
+        except requests.exceptions.ConnectionError as e:
+            logger.error(f"Connection error listing speakers: {e}")
+            raise Exception(f"Connection error: {e}")
+        except requests.exceptions.Timeout as e:
+            logger.error(f"Timeout listing speakers: {e}")
+            raise Exception(f"Connection timeout: {e}")
+        except requests.exceptions.RequestException as e:
+            logger.error(f"Request exception listing speakers: {e}")
+            raise Exception(f"Request failed: {e}")
+        except Exception as e:
+            logger.error(f"Unexpected error listing speakers: {e}")
+            raise Exception(f"Unexpected error: {e}") 

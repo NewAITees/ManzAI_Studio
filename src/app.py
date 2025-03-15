@@ -1,176 +1,190 @@
-from flask import Flask, jsonify, request, send_file
+import os
+import json
+import logging
+from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
+import traceback
+
+# サービスのインポート
 from src.services.ollama_service import OllamaService
 from src.services.voicevox_service import VoiceVoxService
-from src.services.audio_manager import AudioManager
-import os
-from dotenv import load_dotenv
+from src.utils.audio_manager import AudioManager
+from src.utils.mock_data import get_mock_script
 
-# 環境変数をロード
-load_dotenv()
+# 開発モードの設定
+development_mode = os.environ.get("FLASK_ENV", "development") == "development"
 
-def create_app():
-    """Flaskアプリケーションを作成"""
-    app = Flask(__name__)
-    CORS(app)
+# ロガーの設定
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
+logger = logging.getLogger(__name__)
+
+# アプリケーションの初期化
+app = Flask(__name__)
+CORS(app)  # クロスオリジンリクエストを許可
+
+# サービスの初期化
+ollama_service = OllamaService()
+voicevox_service = VoiceVoxService()
+audio_manager = AudioManager(os.path.join(os.path.dirname(__file__), '..', 'static', 'audio'))
+
+@app.route("/")
+def index():
+    """
+    ルートエンドポイント
     
-    # サービスの初期化
-    ollama_service = OllamaService()
-    voicevox_service = VoiceVoxService()
-    audio_manager = AudioManager()
+    Returns:
+        サーバーステータス
+    """
+    return jsonify({"status": "ManzAI studio server is running"})
+
+@app.route("/api/status")
+def status():
+    """
+    サービスの状態を返すエンドポイント
     
-    @app.route('/api/health')
-    def health_check():
-        """ヘルスチェックエンドポイント"""
-        return jsonify({'status': 'healthy'})
+    Returns:
+        各サービスの状態を含むJSONレスポンス
+    """
+    status_info = {
+        "status": "ok",
+        "services": {
+            "ollama": "unknown",
+            "voicevox": "unknown",
+        },
+        "development_mode": development_mode
+    }
     
-    @app.route('/api/generate', methods=['POST'])
-    def generate_manzai():
-        """漫才生成エンドポイント"""
+    # Ollamaサービスの状態を確認
+    try:
+        models = ollama_service.list_models()
+        status_info["services"]["ollama"] = {
+            "status": "connected",
+            "models": models
+        }
+    except Exception as e:
+        logger.error(f"Error checking Ollama service: {e}")
+        status_info["services"]["ollama"] = {
+            "status": "error",
+            "error": str(e)
+        }
+    
+    # VoiceVoxサービスの状態を確認
+    try:
+        speakers = voicevox_service.list_speakers()
+        status_info["services"]["voicevox"] = {
+            "status": "connected",
+            "speakers": speakers
+        }
+    except Exception as e:
+        logger.error(f"Error checking VoiceVox service: {e}")
+        status_info["services"]["voicevox"] = {
+            "status": "error",
+            "error": str(e)
+        }
+    
+    return jsonify(status_info)
+
+@app.route("/api/generate", methods=["POST"])
+def generate_script():
+    """
+    POSTリクエストからトピックを受け取り、マンザイスクリプトを生成するエンドポイント
+    
+    Returns:
+        JSON形式のレスポンス
+    """
+    try:
+        # リクエストデータの取得と検証
         if not request.is_json:
-            return jsonify({'error': 'Content-Type must be application/json'}), 415
+            return jsonify({
+                "error": "Content-Type must be application/json",
+                "audio_data": [],
+                "script": []
+            }), 415
         
         data = request.get_json()
-        topic = data.get('topic')
+        topic = data.get("topic")
         
+        # トピックが提供されているか確認
         if not topic:
-            return jsonify({'error': 'topic is required'}), 400
-        
-        if topic == '':
-            return jsonify({'error': 'topic cannot be empty'}), 400
-        
-        try:
-            # 漫才スクリプトを生成
-            script_data = ollama_service.generate_manzai_script(topic)
-            
-            # 音声を生成
-            audio_data = []
-            for line in script_data['script']:
-                # 音声を生成
-                voice_data = voicevox_service.generate_voice(
-                    line['text'],
-                    speaker_id=1 if line['role'] == 'tsukkomi' else 2
-                )
-                
-                # 音声ファイルを保存
-                filename = f"{line['role']}_{len(audio_data)}"
-                audio_path = audio_manager.save_audio(voice_data, filename)
-                
-                audio_data.append({
-                    'role': line['role'],
-                    'audio_path': os.path.basename(audio_path)
-                })
-            
             return jsonify({
-                'script': script_data['script'],
-                'audio_data': audio_data
-            })
+                "error": "Topic is required",
+                "audio_data": [],
+                "script": []
+            }), 400
             
-        except Exception as e:
-            return jsonify({'error': str(e)}), 500
-    
-    @app.route('/api/audio/<filename>')
-    def get_audio(filename):
-        """音声ファイル取得エンドポイント"""
-        try:
-            audio_data = audio_manager.get_audio(filename)
-            return send_file(
-                os.path.join(audio_manager.audio_dir, filename),
-                mimetype='audio/wav'
-            )
-        except FileNotFoundError:
-            return jsonify({'error': 'Audio file not found'}), 404
-        except Exception as e:
-            return jsonify({'error': str(e)}), 500
-            
-    @app.route('/api/speakers', methods=['GET'])
-    def get_speakers():
-        """利用可能な話者一覧を取得するエンドポイント"""
-        try:
-            speakers = voicevox_service.get_speakers()
-            return jsonify({'speakers': speakers})
-        except Exception as e:
-            return jsonify({'error': str(e)}), 500
-            
-    @app.route('/api/synthesize', methods=['POST'])
-    def synthesize_voice():
-        """音声合成エンドポイント"""
-        if not request.is_json:
-            return jsonify({'error': 'Content-Type must be application/json'}), 415
-            
-        data = request.get_json()
-        text = data.get('text')
-        speaker_id = data.get('speaker_id', 1)  # デフォルト: ずんだもん
+        # モックデータを使用するかどうか
+        use_mock = data.get("use_mock", development_mode)
         
-        if not text:
-            return jsonify({'error': 'text is required'}), 400
-            
-        try:
-            # 音声合成
-            file_path, timing_data = voicevox_service.synthesize_voice(text, speaker_id)
-            
-            # 音声ファイルのURLを構築
-            filename = os.path.basename(file_path)
-            audio_url = f"/api/audio/{filename}"
-            
+        # モックデータを使用する場合
+        if use_mock:
+            logger.info(f"Generating mock manzai script for topic: {topic}")
+            script_data = get_mock_script(topic)
             return jsonify({
-                'audio_url': audio_url,
-                'timing_data': timing_data
+                "script": script_data,
+                "audio_data": []
             })
-        except Exception as e:
-            return jsonify({'error': str(e)}), 500
-            
-    @app.route('/api/synthesize_script', methods=['POST'])
-    def synthesize_script():
-        """漫才スクリプト全体の音声合成エンドポイント"""
-        if not request.is_json:
-            return jsonify({'error': 'Content-Type must be application/json'}), 415
-            
-        data = request.get_json()
-        script = data.get('script')
-        tsukkomi_id = data.get('tsukkomi_id', 1)  # デフォルト: ずんだもん
-        boke_id = data.get('boke_id', 3)  # デフォルト: 四国めたん
         
-        if not script:
-            return jsonify({'error': 'script is required'}), 400
-            
+        # 実際のスクリプト生成
+        logger.info(f"Generating real manzai script for topic: {topic}")
         try:
-            results = []
+            # Ollamaサービスを使用してスクリプトを生成
+            script = ollama_service.generate_manzai_script(topic)
             
-            for line in script:
-                role = line.get('role')
-                text = line.get('text')
-                
-                if not text:
-                    continue
-                    
-                # 話者IDを選択
-                speaker_id = tsukkomi_id if role == 'tsukkomi' else boke_id
-                
-                # 音声合成
-                file_path, timing_data = voicevox_service.synthesize_voice(text, speaker_id)
-                
-                # 音声ファイルのURLを構築
-                filename = os.path.basename(file_path)
-                audio_url = f"/api/audio/{filename}"
-                
-                results.append({
-                    'role': role,
-                    'text': text,
-                    'audio_url': audio_url,
-                    'timing_data': timing_data
-                })
-                
-            return jsonify({'results': results})
+            logger.info(f"Successfully generated manzai script: {len(script)} lines")
+            return jsonify({
+                "script": script,
+                "audio_data": []
+            })
+        
         except Exception as e:
-            return jsonify({'error': str(e)}), 500
+            # エラー発生時はモックデータにフォールバック（開発モードのみ）
+            logger.error(f"Error generating script: {e}")
+            
+            if development_mode:
+                logger.warning("Falling back to mock data due to error")
+                script_data = get_mock_script(topic)
+                return jsonify({
+                    "script": script_data,
+                    "audio_data": [],
+                    "error": f"サービスエラー（モックデータを使用）: {str(e)}"
+                })
+            else:
+                # 本番環境ではエラーを返す
+                return jsonify({
+                    "error": f"Failed to generate script: {str(e)}",
+                    "audio_data": [],
+                    "script": []
+                }), 500
+                
+    except Exception as e:
+        logger.exception(f"Unexpected error: {e}")
+        return jsonify({
+            "error": f"Internal server error: {str(e)}",
+            "audio_data": [],
+            "script": []
+        }), 500
+
+@app.route('/api/audio/<filename>')
+def get_audio(filename):
+    """
+    音声ファイルを提供するエンドポイント
     
-    return app
-    
-def run():
-    """Poetryのエントリーポイントとして使用するための関数"""
-    app = create_app()
-    app.run(host="0.0.0.0", port=5001, debug=True)
-    
+    Args:
+        filename: 音声ファイル名
+        
+    Returns:
+        音声ファイル
+    """
+    try:
+        audio_dir = os.path.join(os.path.dirname(__file__), '..', 'static', 'audio')
+        return send_from_directory(audio_dir, filename)
+    except Exception as e:
+        logger.error(f"Error serving audio file {filename}: {e}")
+        return jsonify({"error": str(e)}), 404
+
 if __name__ == "__main__":
-    run() 
+    # デバッグモードで実行
+    app.run(host="0.0.0.0", port=5000, debug=True) 

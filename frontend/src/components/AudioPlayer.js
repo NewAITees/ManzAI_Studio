@@ -1,44 +1,76 @@
 import React, { useState, useRef, useEffect } from 'react';
 import PropTypes from 'prop-types';
 
+/**
+ * 音声再生コンポーネント
+ * @param {Object} props - コンポーネントのプロパティ
+ * @param {Array} props.audioData - 音声データの配列
+ * @param {Function} props.onPlayStateChange - 再生状態が変わったときのコールバック関数
+ */
 const AudioPlayer = ({ audioData, onPlayStateChange }) => {
   const [isPlaying, setIsPlaying] = useState(false);
+  const [currentIndex, setCurrentIndex] = useState(-1);
   const audioRefs = useRef([]);
+  const currentAudioRef = useRef(null);
 
+  // 音声データが変わったら、参照を初期化
   useEffect(() => {
-    // 音声ファイルの読み込み
-    audioRefs.current.forEach(audio => {
-      if (audio) {
-        audio.load();
-      }
-    });
-  }, [audioData]);
+    audioRefs.current = audioData.map(() => null);
+    setCurrentIndex(-1);
+    setIsPlaying(false);
+    onPlayStateChange(false, null, -1);
+  }, [audioData, onPlayStateChange]);
 
-  const handlePlay = async () => {
-    try {
-      // すべての音声を順番に再生
-      for (let i = 0; i < audioRefs.current.length; i++) {
-        const audio = audioRefs.current[i];
-        if (audio) {
-          setIsPlaying(true);
-          onPlayStateChange(true);
-          await audio.play();
-          // 再生が終わるまで待機
-          await new Promise(resolve => {
-            audio.onended = resolve;
-          });
-        }
-      }
-      // すべての再生が終わったら停止状態に
+  // 個別の音声ファイルの再生
+  const playAudio = async (index) => {
+    if (index >= audioData.length) {
+      // すべての音声再生が終了
       setIsPlaying(false);
-      onPlayStateChange(false);
+      setCurrentIndex(-1);
+      onPlayStateChange(false, null, -1);
+      return;
+    }
+
+    try {
+      const audio = audioRefs.current[index];
+      if (!audio) return;
+
+      // 現在の音声と再生位置を設定
+      currentAudioRef.current = audio;
+      setCurrentIndex(index);
+      
+      // 再生状態をアップデート
+      setIsPlaying(true);
+      onPlayStateChange(true, audio, index);
+
+      // 音声の再生
+      audio.currentTime = 0;
+      await audio.play();
+
+      // この音声の再生が終わったら次の音声を再生
+      audio.onended = () => {
+        playAudio(index + 1);
+      };
     } catch (error) {
       console.error('Error playing audio:', error);
       setIsPlaying(false);
-      onPlayStateChange(false);
+      setCurrentIndex(-1);
+      onPlayStateChange(false, null, -1);
     }
   };
 
+  // 再生ボタンのクリックハンドラ
+  const handlePlay = async () => {
+    if (isPlaying) {
+      // 再生中なら停止
+      handleStop();
+    } else {
+      // 停止中なら再生
+      playAudio(0);
+    }
+  };
+
+  // 停止ボタンのクリックハンドラ
   const handleStop = () => {
     // すべての音声を停止
     audioRefs.current.forEach(audio => {
@@ -47,26 +79,40 @@ const AudioPlayer = ({ audioData, onPlayStateChange }) => {
         audio.currentTime = 0;
       }
     });
+    
     setIsPlaying(false);
-    onPlayStateChange(false);
+    setCurrentIndex(-1);
+    onPlayStateChange(false, null, -1);
   };
 
   return (
     <div className="audio-player">
+      {/* 音声ファイル要素の生成 (非表示) */}
       {audioData.map((audio, index) => (
         <audio
           key={index}
           ref={el => audioRefs.current[index] = el}
           src={audio.audio_path}
-          data-testid="audio-element"
+          preload="auto"
+          data-testid={`audio-element-${index}`}
         />
       ))}
+      
+      {/* 再生/停止ボタン */}
       <button
-        onClick={isPlaying ? handleStop : handlePlay}
+        onClick={handlePlay}
         disabled={audioData.length === 0}
+        data-testid="play-button"
       >
         {isPlaying ? '停止' : '再生'}
       </button>
+      
+      {/* 再生中の音声表示 */}
+      {isPlaying && currentIndex >= 0 && (
+        <div className="now-playing">
+          再生中: {audioData[currentIndex]?.role === 'tsukkomi' ? 'ツッコミ' : 'ボケ'}
+        </div>
+      )}
     </div>
   );
 };

@@ -1,0 +1,241 @@
+/* App.css - ManzAI Studio メインスタイル */
+
+/* 全体的な設定 */
+:root {
+  --primary-color: #4a55b0;
+  --secondary-color: #ff6b6b;
+  --accent-color: #ffd166;
+  --background-color: #f4f5fc;
+  --text-color: #333;
+  --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  --border-radius: 8px;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Noto Sans JP', 'Helvetica Neue', sans-serif;
+  background-color: var(--background-color);
+  color: var(--text-color);
+  line-height: 1.6;
+}
+
+/* アプリ全体のレイアウト */
+.app-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.app-header {
+  padding: 20px 0;
+  margin-bottom: 30px;
+  text-align: center;
+  border-bottom: 2px solid var(--primary-color);
+}
+
+.app-header h1 {
+  color: var(--primary-color);
+  font-size: 2.5rem;
+  margin: 0;
+}
+
+.app-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+}
+
+.app-footer {
+  margin-top: 40px;
+  padding: 20px 0;
+  text-align: center;
+  border-top: 1px solid #ddd;
+  font-size: 0.9rem;
+  color: #666;
+}
+
+/* 入力フォーム */
+.input-section {
+  max-width: 800px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.input-form {
+  display: flex;
+  gap: 10px;
+}
+
+.form-group {
+  flex: 1;
+}
+
+.form-control {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #ddd;
+  border-radius: var(--border-radius);
+  font-size: 1rem;
+  outline: none;
+  transition: border-color 0.3s;
+}
+
+.form-control:focus {
+  border-color: var(--primary-color);
+}
+
+.error-message {
+  color: var(--secondary-color);
+  margin-top: 5px;
+  font-size: 0.85rem;
+}
+
+.submit-button {
+  padding: 12px 24px;
+  background-color: var(--primary-color);
+  color: white;
+  border: none;
+  border-radius: var(--border-radius);
+  cursor: pointer;
+  font-size: 1rem;
+  transition: background-color 0.3s;
+}
+
+.submit-button:hover {
+  background-color: #374397;
+}
+
+.submit-button:disabled {
+  background-color: #a0a0a0;
+  cursor: not-allowed;
+}
+
+/* キャラクター表示エリア */
+.display-section {
+  margin-top: 20px;
+}
+
+.characters-container {
+  display: flex;
+  justify-content: space-around;
+  gap: 20px;
+  max-height: 500px;
+}
+
+.character {
+  flex: 1;
+  max-width: 400px;
+  border-radius: var(--border-radius);
+  overflow: hidden;
+  box-shadow: var(--shadow);
+  background-color: white;
+}
+
+/* スクリプト表示 */
+.script-section {
+  margin-top: 20px;
+}
+
+.script-container {
+  padding: 20px;
+  background-color: white;
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow);
+}
+
+.script-container h2 {
+  margin-bottom: 15px;
+  color: var(--primary-color);
+  font-size: 1.5rem;
+}
+
+.script-lines {
+  max-height: 300px;
+  overflow-y: auto;
+  padding: 10px;
+  border: 1px solid #eee;
+  border-radius: var(--border-radius);
+}
+
+.script-line {
+  margin-bottom: 10px;
+  padding: 10px;
+  border-radius: var(--border-radius);
+  transition: background-color 0.3s;
+}
+
+.script-line.tsukkomi {
+  background-color: rgba(74, 85, 176, 0.1);
+}
+
+.script-line.boke {
+  background-color: rgba(255, 107, 107, 0.1);
+}
+
+.script-line.current {
+  background-color: rgba(255, 209, 102, 0.3);
+  font-weight: bold;
+}
+
+/* オーディオプレイヤー */
+.player-section {
+  margin-top: 20px;
+}
+
+.audio-player {
+  display: flex;
+  justify-content: center;
+  padding: 20px;
+  background-color: white;
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow);
+}
+
+.audio-player button {
+  padding: 12px 30px;
+  background-color: var(--secondary-color);
+  color: white;
+  border: none;
+  border-radius: var(--border-radius);
+  cursor: pointer;
+  font-size: 1rem;
+  transition: background-color 0.3s;
+}
+
+.audio-player button:hover {
+  background-color: #e85555;
+}
+
+.audio-player button:disabled {
+  background-color: #a0a0a0;
+  cursor: not-allowed;
+}
+
+/* レスポンシブデザイン */
+@media (max-width: 768px) {
+  .characters-container {
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .character {
+    max-width: 100%;
+  }
+  
+  .input-form {
+    flex-direction: column;
+  }
+  
+  .submit-button {
+    width: 100%;
+  }
+} 
