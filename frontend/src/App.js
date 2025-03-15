@@ -2,8 +2,10 @@ import React, { useState, useEffect, useRef } from 'react';
 import InputForm from './components/InputForm';
 import DisplayWindow from './components/DisplayWindow';
 import AudioPlayer from './components/AudioPlayer';
+import SettingsPage from './components/settings/SettingsPage';
 import { calculateMouthOpenness } from './utils/lipSync';
 import { generateManzaiScript, getTimingData } from './services/api';
+import { CharacterProvider } from './stores/characterStore';
 import './App.css';
 
 /**
@@ -18,6 +20,7 @@ const App = () => {
   const [currentAudioIndex, setCurrentAudioIndex] = useState(-1);
   const [mouthOpenValue, setMouthOpenValue] = useState(0);
   const [timingData, setTimingData] = useState(null);
+  const [showSettings, setShowSettings] = useState(false);
   
   // アニメーションと音声の同期用
   const requestRef = useRef(null);
@@ -100,84 +103,100 @@ const App = () => {
     audioElementRef.current = audioElement;
   };
   
+  // 設定画面の表示・非表示を切り替える
+  const toggleSettings = () => {
+    setShowSettings(!showSettings);
+  };
+  
   return (
-    <div className="app-container">
-      <header className="app-header">
-        <h1>ManzAI Studio</h1>
-      </header>
-      
-      <main className="app-main">
-        <section className="input-section">
-          <InputForm
-            onSubmit={handleGenerateScript}
-            isGenerating={isGenerating}
-          />
-        </section>
+    <CharacterProvider>
+      <div className="app-container">
+        <header className="app-header">
+          <h1>ManzAI Studio</h1>
+          <button className="settings-button" onClick={toggleSettings}>
+            {showSettings ? 'ホームに戻る' : '設定'}
+          </button>
+        </header>
         
-        {script && (
-          <>
-            <section className="display-section">
-              <div className="characters-container">
-                {/* ツッコミ役のLive2D表示 */}
-                <div className="character tsukkomi">
-                  <DisplayWindow
-                    isDisplayMode={true}
-                    modelPath="/live2d/models/tsukkomi/model.json"
-                    isPlaying={isPlaying && audioData[currentAudioIndex]?.role === 'tsukkomi'}
-                    mouthOpenValue={
-                      isPlaying && audioData[currentAudioIndex]?.role === 'tsukkomi'
-                        ? mouthOpenValue
-                        : 0
-                    }
-                  />
-                </div>
-                
-                {/* ボケ役のLive2D表示 */}
-                <div className="character boke">
-                  <DisplayWindow
-                    isDisplayMode={true}
-                    modelPath="/live2d/models/boke/model.json"
-                    isPlaying={isPlaying && audioData[currentAudioIndex]?.role === 'boke'}
-                    mouthOpenValue={
-                      isPlaying && audioData[currentAudioIndex]?.role === 'boke'
-                        ? mouthOpenValue
-                        : 0
-                    }
-                  />
-                </div>
-              </div>
-            </section>
-            
-            <section className="script-section">
-              <div className="script-container">
-                <h2>漫才スクリプト</h2>
-                <div className="script-lines">
-                  {script.map((line, index) => (
-                    <div
-                      key={index}
-                      className={`script-line ${line.role} ${index === currentAudioIndex ? 'current' : ''}`}
-                    >
-                      <strong>{line.role === 'tsukkomi' ? 'ツッコミ' : 'ボケ'}:</strong> {line.text}
+        <main className="app-main">
+          {showSettings ? (
+            <SettingsPage />
+          ) : (
+            <>
+              <section className="input-section">
+                <InputForm
+                  onSubmit={handleGenerateScript}
+                  isGenerating={isGenerating}
+                />
+              </section>
+              
+              {script && (
+                <>
+                  <section className="display-section">
+                    <div className="characters-container">
+                      {/* ツッコミ役のLive2D表示 */}
+                      <div className="character tsukkomi">
+                        <DisplayWindow
+                          isDisplayMode={true}
+                          modelPath="/live2d/models/tsukkomi/model.json"
+                          isPlaying={isPlaying && audioData[currentAudioIndex]?.role === 'tsukkomi'}
+                          mouthOpenValue={
+                            isPlaying && audioData[currentAudioIndex]?.role === 'tsukkomi'
+                              ? mouthOpenValue
+                              : 0
+                          }
+                        />
+                      </div>
+                      
+                      {/* ボケ役のLive2D表示 */}
+                      <div className="character boke">
+                        <DisplayWindow
+                          isDisplayMode={true}
+                          modelPath="/live2d/models/boke/model.json"
+                          isPlaying={isPlaying && audioData[currentAudioIndex]?.role === 'boke'}
+                          mouthOpenValue={
+                            isPlaying && audioData[currentAudioIndex]?.role === 'boke'
+                              ? mouthOpenValue
+                              : 0
+                          }
+                        />
+                      </div>
                     </div>
-                  ))}
-                </div>
-              </div>
-            </section>
-            
-            <section className="player-section">
-              <AudioPlayer
-                audioData={audioData}
-                onPlayStateChange={handlePlayStateChange}
-              />
-            </section>
-          </>
-        )}
-      </main>
-      
-      <footer className="app-footer">
-        <p>© 2023 ManzAI Studio - ローカルで動作する漫才生成・実演Webアプリケーション</p>
-      </footer>
-    </div>
+                  </section>
+                  
+                  <section className="script-section">
+                    <div className="script-container">
+                      <h2>漫才スクリプト</h2>
+                      <div className="script-lines">
+                        {script.map((line, index) => (
+                          <div
+                            key={index}
+                            className={`script-line ${line.role} ${index === currentAudioIndex ? 'current' : ''}`}
+                          >
+                            <strong>{line.role === 'tsukkomi' ? 'ツッコミ' : 'ボケ'}:</strong> {line.text}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </section>
+                  
+                  <section className="player-section">
+                    <AudioPlayer
+                      audioData={audioData}
+                      onPlayStateChange={handlePlayStateChange}
+                    />
+                  </section>
+                </>
+              )}
+            </>
+          )}
+        </main>
+        
+        <footer className="app-footer">
+          <p>© 2023 ManzAI Studio - ローカルで動作する漫才生成・実演Webアプリケーション</p>
+        </footer>
+      </div>
+    </CharacterProvider>
   );
 };
 

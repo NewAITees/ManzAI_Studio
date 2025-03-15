@@ -1,0 +1,13 @@
+{
+  "name": "漫才プロンプト",
+  "description": "漫才台本を生成するためのデフォルトプロンプト",
+  "parameters": [
+    {
+      "name": "topic",
+      "description": "漫才のトピック",
+      "type": "string",
+      "required": true
+    }
+  ],
+  "isDefault": true
+} 

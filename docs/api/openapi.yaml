@@ -1,0 +1,556 @@
+openapi: 3.0.0
+info:
+  title: ManzAI Studio API
+  description: |
+    ManzAI Studioのバックエンドサービス用APIドキュメント。
+    漫才スクリプト生成、音声合成、話者管理、Live2Dモデル管理、プロンプト管理などの機能を提供します。
+  version: 1.0.0
+  contact:
+    name: ManzAI Studio Project
+servers:
+  - url: http://localhost:5000
+    description: 開発サーバー
+  - url: https://api.manzai-studio.example.com
+    description: 本番サーバー（例）
+
+tags:
+  - name: システム
+    description: システムステータスに関連するエンドポイント
+  - name: 漫才生成
+    description: 漫才スクリプト生成に関連するエンドポイント
+  - name: 音声合成
+    description: 音声合成に関連するエンドポイント
+  - name: 話者
+    description: 音声合成の話者に関連するエンドポイント
+  - name: モデル
+    description: Live2Dモデルに関連するエンドポイント
+  - name: プロンプト
+    description: 生成プロンプトに関連するエンドポイント
+
+paths:
+  /api/status:
+    get:
+      summary: システムステータスの取得
+      description: システムおよび各種バックエンドサービスの状態を返します
+      tags:
+        - システム
+      responses:
+        '200':
+          description: システムステータス情報
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    enum: [ok, error]
+                    example: ok
+                  services:
+                    type: object
+                    properties:
+                      ollama:
+                        type: object
+                        properties:
+                          status:
+                            type: string
+                            enum: [connected, error, unknown]
+                          models:
+                            type: array
+                            items:
+                              type: string
+                            example: ["llama2", "mistral"]
+                          error:
+                            type: string
+                      voicevox:
+                        type: object
+                        properties:
+                          status:
+                            type: string
+                            enum: [connected, error, unknown]
+                          speakers:
+                            type: array
+                            items:
+                              $ref: '#/components/schemas/Speaker'
+                          error:
+                            type: string
+                  development_mode:
+                    type: boolean
+                    example: true
+
+  /api/generate:
+    post:
+      summary: 漫才スクリプトの生成
+      description: 指定されたトピックに基づいて漫才スクリプトを生成します
+      tags:
+        - 漫才生成
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - topic
+              properties:
+                topic:
+                  type: string
+                  description: 漫才のトピック
+                  example: "人工知能"
+                prompt_id:
+                  type: string
+                  description: 使用するプロンプトのID（指定しない場合はデフォルト）
+                  example: "basic_manzai"
+                options:
+                  type: object
+                  description: 生成オプション
+                  properties:
+                    max_length:
+                      type: integer
+                      description: 最大生成長
+                      example: 1000
+                    style:
+                      type: string
+                      description: 漫才のスタイル
+                      example: "関西風"
+      responses:
+        '200':
+          description: 生成された漫才スクリプト
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  script:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ScriptLine'
+                  audio_data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        speaker:
+                          type: string
+                        text:
+                          type: string
+                        audio_file:
+                          type: string
+                  error:
+                    type: string
+                    description: 警告やエラー情報（存在する場合）
+        '400':
+          description: 不正なリクエスト
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: サーバーエラー
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/synthesize:
+    post:
+      summary: 台本の音声合成
+      description: 提供されたスクリプトを音声に合成します
+      tags:
+        - 音声合成
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - script
+              properties:
+                script:
+                  type: array
+                  items:
+                    type: object
+                    required:
+                      - speaker
+                      - text
+                      - speaker_id
+                    properties:
+                      speaker:
+                        type: string
+                        example: "ツッコミ"
+                      text:
+                        type: string
+                        example: "こんにちは"
+                      speaker_id:
+                        type: integer
+                        example: 1
+      responses:
+        '200':
+          description: 合成されたオーディオファイル情報
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  audio_data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        speaker:
+                          type: string
+                        text:
+                          type: string
+                        audio_file:
+                          type: string
+        '400':
+          description: 不正なリクエスト
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: サーバーエラー
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/speakers:
+    get:
+      summary: 話者一覧の取得
+      description: 利用可能な音声合成話者の一覧を取得します
+      tags:
+        - 話者
+      responses:
+        '200':
+          description: 話者一覧
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  speakers:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Speaker'
+        '500':
+          description: サーバーエラー
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/models:
+    get:
+      summary: Live2Dモデル一覧の取得
+      description: 利用可能なLive2Dモデルの一覧を取得します
+      tags:
+        - モデル
+      responses:
+        '200':
+          description: モデル一覧
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  models:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Model'
+        '500':
+          description: サーバーエラー
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/models/register:
+    post:
+      summary: Live2Dモデルの登録
+      description: 新しいLive2Dモデルをアップロードして登録します
+      tags:
+        - モデル
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - name
+                - model_file
+              properties:
+                name:
+                  type: string
+                  description: モデル名
+                description:
+                  type: string
+                  description: モデルの説明
+                model_file:
+                  type: string
+                  format: binary
+                  description: Live2Dモデルファイル（zipまたはmoc3）
+                thumbnail:
+                  type: string
+                  format: binary
+                  description: モデルのサムネイル画像
+      responses:
+        '200':
+          description: 登録成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  model_id:
+                    type: string
+                    description: 登録されたモデルのID
+        '400':
+          description: 不正なリクエスト
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: サーバーエラー
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/prompts:
+    get:
+      summary: プロンプト一覧の取得
+      description: 利用可能なプロンプトの一覧を取得します
+      tags:
+        - プロンプト
+      responses:
+        '200':
+          description: プロンプト一覧
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  prompts:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Prompt'
+        '500':
+          description: サーバーエラー
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    
+    post:
+      summary: プロンプトの作成
+      description: 新しいプロンプトを作成します
+      tags:
+        - プロンプト
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+                - template
+              properties:
+                name:
+                  type: string
+                  description: プロンプト名
+                description:
+                  type: string
+                  description: プロンプトの説明
+                template:
+                  type: string
+                  description: テンプレート文字列（{{変数名}}形式で変数を含む）
+      responses:
+        '201':
+          description: 作成成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  prompt:
+                    $ref: '#/components/schemas/Prompt'
+        '400':
+          description: 不正なリクエスト
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: サーバーエラー
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/prompts/{promptId}:
+    get:
+      summary: 特定のプロンプトの取得
+      description: 指定されたIDのプロンプトを取得します
+      tags:
+        - プロンプト
+      parameters:
+        - name: promptId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: プロンプトのID
+      responses:
+        '200':
+          description: 取得成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  prompt:
+                    $ref: '#/components/schemas/Prompt'
+        '404':
+          description: プロンプトが見つかりません
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: サーバーエラー
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/audio/{filename}:
+    get:
+      summary: 音声ファイルの取得
+      description: 指定された音声ファイルを取得します
+      tags:
+        - 音声合成
+      parameters:
+        - name: filename
+          in: path
+          required: true
+          schema:
+            type: string
+          description: 音声ファイル名
+      responses:
+        '200':
+          description: 音声ファイル
+          content:
+            audio/wav:
+              schema:
+                type: string
+                format: binary
+        '404':
+          description: ファイルが見つかりません
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+components:
+  schemas:
+    ScriptLine:
+      type: object
+      required:
+        - speaker
+        - text
+      properties:
+        speaker:
+          type: string
+          description: 発話者（ツッコミ/ボケ）
+          example: "ツッコミ"
+        text:
+          type: string
+          description: 発話内容
+          example: "今日はこのテーマについて話しましょう"
+
+    Speaker:
+      type: object
+      required:
+        - name
+        - styles
+      properties:
+        name:
+          type: string
+          description: 話者名
+          example: "四国めたん"
+        styles:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: integer
+                description: スタイルID
+                example: 2
+              name:
+                type: string
+                description: スタイル名
+                example: "ノーマル"
+
+    Model:
+      type: object
+      required:
+        - id
+        - name
+      properties:
+        id:
+          type: string
+          description: モデルID
+          example: "model1"
+        name:
+          type: string
+          description: モデル名
+          example: "モデル1"
+        thumbnail:
+          type: string
+          description: サムネイル画像のパス
+          example: "thumbnails/model1.png"
+        description:
+          type: string
+          description: モデルの説明
+          example: "テストモデル1の説明"
+
+    Prompt:
+      type: object
+      required:
+        - id
+        - name
+        - template
+      properties:
+        id:
+          type: string
+          description: プロンプトID
+          example: "prompt1"
+        name:
+          type: string
+          description: プロンプト名
+          example: "ベーシックマンザイ"
+        description:
+          type: string
+          description: プロンプトの説明
+          example: "基本的なマンザイ生成プロンプト"
+        template:
+          type: string
+          description: テンプレート文字列
+          example: "あなたは漫才師です。{{topic}}についての漫才を書いてください。"
+
+    Error:
+      type: object
+      required:
+        - error
+      properties:
+        error:
+          type: string
+          description: エラーメッセージ
+          example: "リクエストの処理中にエラーが発生しました" 

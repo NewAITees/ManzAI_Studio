@@ -238,4 +238,23 @@ body {
   .submit-button {
     width: 100%;
   }
+}
+
+/* 設定ボタンスタイル */
+.settings-button {
+  position: absolute;
+  right: 20px;
+  top: 20px;
+  background-color: rgba(255, 255, 255, 0.2);
+  color: white;
+  border: none;
+  padding: 8px 15px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.3s;
+}
+
+.settings-button:hover {
+  background-color: rgba(255, 255, 255, 0.3);
 } 

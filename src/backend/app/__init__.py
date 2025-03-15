@@ -19,7 +19,9 @@ def create_app(config_object: Config = DevelopmentConfig) -> Flask:
     CORS(app)
 
     # Register blueprints
-    from src.backend.app.routes import api
+    from src.backend.app.routes import api, models, prompts
     app.register_blueprint(api.bp)
+    app.register_blueprint(models.bp)
+    app.register_blueprint(prompts.bp)
 
     return app 
