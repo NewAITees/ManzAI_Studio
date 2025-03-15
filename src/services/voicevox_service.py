@@ -275,7 +275,7 @@ class VoiceVoxService:
             raise VoiceVoxServiceError(error_message)
     
     def list_speakers(self) -> List[VoiceVoxSpeaker]:
-        """利用可能な話者の一覧をフラットな形式で取得
+        """利用可能な話者の一覧をVoiceVoxSpeakerモデルで取得
         
         Returns:
             話者情報のリスト
@@ -286,25 +286,25 @@ class VoiceVoxService:
         try:
             # 話者一覧を取得
             speakers_data = self.get_speakers()
+            result = []
             
-            # フラットな形式に変換
-            flat_speakers = []
-            for speaker_group in speakers_data:
-                name = speaker_group.get("name", "")
-                for style in speaker_group.get("styles", []):
-                    speaker_id = style.get("id")
+            for speaker in speakers_data:
+                speaker_name = speaker.get("name", "")
+                speaker_uuid = speaker.get("speaker_uuid", "")
+                
+                for style in speaker.get("styles", []):
+                    style_id = style.get("id", 0)
                     style_name = style.get("name", "")
                     
-                    # VoiceVoxSpeakerモデルに変換
-                    speaker = VoiceVoxSpeaker(
-                        id=speaker_id,
-                        name=name,
-                        style_id=speaker_id,
-                        style_name=style_name
-                    )
-                    flat_speakers.append(speaker)
+                    if style_id > 0:
+                        result.append(VoiceVoxSpeaker(
+                            id=style_id,
+                            name=speaker_name,
+                            style_id=style_id,
+                            style_name=style_name
+                        ))
             
-            return flat_speakers
+            return result
             
         except VoiceVoxServiceError:
             # エラーをそのまま再送出
@@ -312,4 +312,77 @@ class VoiceVoxService:
         except Exception as e:
             error_message = f"Unexpected error in list_speakers: {str(e)}"
             logger.exception(error_message)
-            raise VoiceVoxServiceError(error_message) 
+            raise VoiceVoxServiceError(error_message)
+
+    def check_availability(self) -> Dict[str, Any]:
+        """VoiceVoxサービスの可用性と情報を確認
+        
+        Returns:
+            状態情報の辞書 {"available": bool, "speakers": int, "error": Optional[str]}
+        """
+        result = {
+            "available": False,
+            "speakers": 0,
+            "error": None,
+            "version": None,
+            "response_time_ms": 0
+        }
+        
+        try:
+            import time
+            start_time = time.time()
+            
+            # バージョン情報を取得
+            version_resp = requests.get(f"{self.base_url}/version", timeout=5)
+            version_resp.raise_for_status()
+            result["version"] = version_resp.text
+            
+            # 話者情報を取得
+            speakers = self.list_speakers()
+            
+            # 情報を設定
+            result["available"] = True
+            result["speakers"] = len(speakers)
+            
+            # 応答時間を計算（ミリ秒）
+            end_time = time.time()
+            result["response_time_ms"] = int((end_time - start_time) * 1000)
+            
+        except (ConnectionError, Timeout) as e:
+            result["error"] = f"Connection error: {str(e)}"
+            logger.warning(f"VoiceVox service connection error: {str(e)}")
+        except RequestException as e:
+            result["error"] = f"Request error: {str(e)}"
+            logger.warning(f"VoiceVox service request error: {str(e)}")
+        except Exception as e:
+            result["error"] = f"Unexpected error: {str(e)}"
+            logger.warning(f"Unexpected error checking VoiceVox availability: {str(e)}")
+        
+        return result
+    
+    def get_detailed_status(self) -> Dict[str, Any]:
+        """詳細なステータス情報を取得
+        
+        Returns:
+            詳細なステータス情報の辞書
+        """
+        status = {
+            "base_url": self.base_url,
+            "available": False,
+            "version": None,
+            "speakers_count": 0,
+            "error": None,
+            "response_time_ms": 0
+        }
+        
+        # 可用性チェック
+        availability = self.check_availability()
+        status.update({
+            "available": availability["available"],
+            "speakers_count": availability["speakers"],
+            "version": availability["version"],
+            "error": availability["error"],
+            "response_time_ms": availability["response_time_ms"]
+        })
+        
+        return status 

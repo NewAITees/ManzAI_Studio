@@ -251,3 +251,12 @@ requests.exceptions.HTTPError: 404 Client Error: Not Found for url: http://local
 2025-03-15 23:56:23,283 - src.services.ollama_service - INFO - OllamaService initialized
 2025-03-15 23:56:38,714 - src.services.ollama_service - INFO - OllamaClient initialized with base URL: http://localhost:11434
 2025-03-15 23:56:38,714 - src.services.ollama_service - INFO - OllamaService initialized
+2025-03-15 16:15:27,811 - src.services.ollama_service - INFO - OllamaClient initialized with base URL: http://ollama:11434 (instance: docker)
+2025-03-15 16:15:27,811 - src.services.ollama_service - INFO - OllamaService initialized with docker instance at http://ollama:11434
+2025-03-15 16:15:28,216 - src.services.ollama_service - INFO - OllamaClient initialized with base URL: http://ollama:11434 (instance: docker)
+2025-03-15 16:15:28,216 - src.services.ollama_service - INFO - OllamaService initialized with docker instance at http://ollama:11434
+2025-03-15 16:17:48,339 - src.services.ollama_service - INFO - OllamaClient initialized with base URL: http://ollama:11434 (instance: docker)
+2025-03-15 16:17:48,339 - src.services.ollama_service - INFO - OllamaService initialized with docker instance at http://ollama:11434
+2025-03-15 16:17:48,730 - src.services.ollama_service - INFO - OllamaClient initialized with base URL: http://ollama:11434 (instance: docker)
+2025-03-15 16:17:48,730 - src.services.ollama_service - INFO - OllamaService initialized with docker instance at http://ollama:11434
+2025-03-15 16:18:00,441 - src.services.ollama_service - INFO - Falling back to /api/tags endpoint

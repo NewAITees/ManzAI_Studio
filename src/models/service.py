@@ -27,6 +27,10 @@ class OllamaStatus(BaseModel):
     available: bool = Field(False, description="サービスが利用可能かどうか")
     models: Optional[List[OllamaModel]] = Field(None, description="利用可能なモデル一覧")
     error: Optional[str] = Field(None, description="エラーメッセージ（該当する場合）")
+    instance_type: Optional[str] = Field(None, description="インスタンスタイプ（local/docker）")
+    api_version: Optional[str] = Field(None, description="OllamaのAPIバージョン")
+    base_url: Optional[str] = Field(None, description="接続先URL")
+    response_time_ms: Optional[int] = Field(None, description="応答時間（ミリ秒）")
 
 
 class VoiceVoxStatus(BaseModel):
@@ -34,6 +38,9 @@ class VoiceVoxStatus(BaseModel):
     available: bool = Field(False, description="サービスが利用可能かどうか")
     speakers: Optional[List[VoiceVoxSpeaker]] = Field(None, description="利用可能な話者一覧")
     error: Optional[str] = Field(None, description="エラーメッセージ（該当する場合）")
+    version: Optional[str] = Field(None, description="VoiceVoxのバージョン")
+    base_url: Optional[str] = Field(None, description="接続先URL")
+    response_time_ms: Optional[int] = Field(None, description="応答時間（ミリ秒）")
 
 
 class ServiceStatus(BaseModel):

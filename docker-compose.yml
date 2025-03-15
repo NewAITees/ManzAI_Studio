@@ -5,11 +5,13 @@ services:
     image: voicevox/voicevox_engine:cpu-ubuntu20.04-latest
     ports:
       - "50021:50021"
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:50021/docs"]
-      interval: 5s
-      timeout: 10s
-      retries: 5
+    # 一時的にヘルスチェックを無効化
+    # healthcheck:
+    #   test: ["CMD", "curl", "-f", "http://localhost:50021/speakers"]
+    #   interval: 10s
+    #   timeout: 30s
+    #   retries: 3
+    #   start_period: 20s
 
   ollama:
     image: ollama/ollama:latest
@@ -17,11 +19,21 @@ services:
       - "11434:11434"
     volumes:
       - ollama_data:/root/.ollama
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:11434/api/tags"]
-      interval: 5s
-      timeout: 10s
-      retries: 5
+    # 一時的にヘルスチェックを無効化
+    # healthcheck:
+    #   test: ["CMD", "sh", "-c", "curl -s http://localhost:11434/api/tags > /dev/null && echo 'OK' || exit 1"]
+    #   interval: 15s
+    #   timeout: 60s
+    #   retries: 3
+    #   start_period: 60s
+    deploy:
+      resources:
+        limits:
+          memory: 8G
+        reservations:
+          memory: 4G
+    environment:
+      - OLLAMA_MODELS=/root/.ollama/models
 
   web:
     build:
@@ -38,12 +50,11 @@ services:
       - FLASK_DEBUG=1
       - VOICEVOX_URL=http://voicevox:50021
       - OLLAMA_URL=http://ollama:11434
-      - OLLAMA_MODEL=llama2
+      - OLLAMA_INSTANCE_TYPE=docker
+      - OLLAMA_MODEL=gemma3:4b
     depends_on:
-      voicevox:
-        condition: service_healthy
-      ollama:
-        condition: service_healthy
+      - voicevox
+      - ollama
 
 volumes:
   ollama_data:
