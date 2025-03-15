@@ -25,9 +25,17 @@ types-requests = "^2.31.0.20240218"
 types-flask = "^1.1.6"
 types-flask-cors = "^4.0.0.20240106"
 
+[tool.poetry.scripts]
+start = "src.app:run"
+test = "pytest:main"
+coverage = "pytest:main --cov=src --cov-report=term-missing"
+lint = "flake8:main"
+format = "black:main src tests"
+type-check = "mypy:main src tests"
+
 [build-system]
 requires = ["poetry-core"]
-build-system-backend = "poetry-core"
+build-backend = "poetry.core.masonry.api"
 
 [tool.black]
 line-length = 88

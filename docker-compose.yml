@@ -33,10 +33,12 @@ services:
     ports:
       - "5000:5000"
     environment:
-      - FLASK_APP=backend/app/__init__.py
+      - FLASK_APP=src.app:create_app
       - FLASK_ENV=development
+      - FLASK_DEBUG=1
       - VOICEVOX_URL=http://voicevox:50021
       - OLLAMA_URL=http://ollama:11434
+      - OLLAMA_MODEL=llama2
     depends_on:
       voicevox:
         condition: service_healthy
