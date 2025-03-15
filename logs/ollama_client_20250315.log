@@ -260,3 +260,22 @@ requests.exceptions.HTTPError: 404 Client Error: Not Found for url: http://local
 2025-03-15 16:17:48,730 - src.services.ollama_service - INFO - OllamaClient initialized with base URL: http://ollama:11434 (instance: docker)
 2025-03-15 16:17:48,730 - src.services.ollama_service - INFO - OllamaService initialized with docker instance at http://ollama:11434
 2025-03-15 16:18:00,441 - src.services.ollama_service - INFO - Falling back to /api/tags endpoint
+2025-03-15 16:24:48,061 - src.services.ollama_service - INFO - OllamaClient initialized with base URL: http://ollama:11434 (instance: docker)
+2025-03-15 16:24:48,062 - src.services.ollama_service - INFO - OllamaService initialized with docker instance at http://ollama:11434
+2025-03-15 16:33:47,492 - src.services.ollama_service - INFO - OllamaClient initialized with base URL: http://ollama:11434 (instance: docker)
+2025-03-15 16:33:47,492 - src.services.ollama_service - INFO - OllamaService initialized with docker instance at http://ollama:11434
+2025-03-15 16:33:47,797 - src.services.ollama_service - INFO - OllamaClient initialized with base URL: http://ollama:11434 (instance: docker)
+2025-03-15 16:33:47,797 - src.services.ollama_service - INFO - OllamaService initialized with docker instance at http://ollama:11434
+2025-03-15 16:35:46,737 - src.services.ollama_service - INFO - OllamaClient initialized with base URL: http://ollama:11434 (instance: docker)
+2025-03-15 16:35:46,737 - src.services.ollama_service - INFO - OllamaService initialized with docker instance at http://ollama:11434
+2025-03-15 16:35:48,271 - src.services.ollama_service - INFO - OllamaClient initialized with base URL: http://ollama:11434 (instance: docker)
+2025-03-15 16:35:48,271 - src.services.ollama_service - INFO - OllamaService initialized with docker instance at http://ollama:11434
+2025-03-15 16:36:08,532 - src.services.ollama_service - INFO - OllamaClient initialized with base URL: http://ollama:11434 (instance: docker)
+2025-03-15 16:36:08,533 - src.services.ollama_service - INFO - OllamaService initialized with docker instance at http://ollama:11434
+2025-03-15 16:36:11,299 - src.services.ollama_service - INFO - OllamaClient initialized with base URL: http://ollama:11434 (instance: docker)
+2025-03-15 16:36:11,300 - src.services.ollama_service - INFO - OllamaService initialized with docker instance at http://ollama:11434
+2025-03-15 16:37:38,556 - src.services.ollama_service - INFO - OllamaClient initialized with base URL: http://ollama:11434 (instance: docker)
+2025-03-15 16:37:38,557 - src.services.ollama_service - INFO - OllamaService initialized with docker instance at http://ollama:11434
+2025-03-15 16:37:38,915 - src.services.ollama_service - INFO - OllamaClient initialized with base URL: http://ollama:11434 (instance: docker)
+2025-03-15 16:37:38,915 - src.services.ollama_service - INFO - OllamaService initialized with docker instance at http://ollama:11434
+2025-03-15 16:37:58,254 - src.services.ollama_service - INFO - Falling back to /api/tags endpoint

@@ -6,12 +6,13 @@ import json
 import logging
 import subprocess
 import threading
+import time
 from typing import Dict, List, Any, Optional, Tuple, Union, cast
 
 from flask import Flask, request, jsonify, send_from_directory, Response, send_file, redirect
 from flask_cors import CORS
 import traceback
-from pydantic import ValidationError
+from pydantic import ValidationError, BaseModel
 from werkzeug.exceptions import BadRequest
 
 # サービスのインポート
@@ -20,8 +21,9 @@ from src.services.voicevox_service import VoiceVoxService, VoiceVoxServiceError
 from src.utils.audio_manager import AudioManager, AudioFileNotFoundError
 from src.utils.mock_data import get_mock_script, get_mock_script_model
 from src.models.script import GenerateScriptRequest, GenerateScriptResponse, ManzaiScript
-from src.models.service import ServiceStatus, OllamaStatus, VoiceVoxStatus, OllamaModel
+from src.models.service import ServiceStatus, OllamaStatus, VoiceVoxStatus
 from src.models.script import ScriptLine, Role
+from src.routes import api as api_routes
 
 # 開発モードの設定
 development_mode = os.environ.get("FLASK_ENV", "development") == "development"
@@ -34,6 +36,14 @@ logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 )
 logger = logging.getLogger(__name__)
+
+# モデル定義
+class OllamaModel(BaseModel):
+    name: str
+    modified_at: int
+    size: int
+    digest: str
+    details: Dict[str, Any] = {}
 
 def create_app():
     """Flaskアプリケーションを作成する"""
@@ -48,14 +58,21 @@ def create_app():
     ollama_model = os.environ.get('OLLAMA_MODEL', 'gemma3:4b')
     ollama_instance_type = os.environ.get('OLLAMA_INSTANCE_TYPE', 'auto')
     
-    # サービスのインスタンスを作成
-    voicevox_service = VoiceVoxService(voicevox_url)
-    ollama_service = OllamaService(ollama_url, instance_type=ollama_instance_type)
+    # サービスの初期化
+    voicevox_service = VoiceVoxService(base_url=voicevox_url)
+    ollama_service = OllamaService(
+        base_url=ollama_url,
+        instance_type=ollama_instance_type
+    )
+    audio_manager = AudioManager(audio_dir=app.config['AUDIO_DIR'])
     
-    # アプリケーションのコンテキストに追加
+    # サービスをアプリケーションに保存
     app.voicevox_service = voicevox_service
     app.ollama_service = ollama_service
-    app.ollama_model = ollama_model
+    app.audio_manager = audio_manager
+    
+    # APIルートを登録
+    app.register_blueprint(api_routes.bp)
     
     CORS(app)  # クロスオリジンリクエストを許可
 

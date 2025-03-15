@@ -1,9 +1,25 @@
-from flask import current_app, jsonify
-from flask_restful import Resource
+from flask import current_app, jsonify, Blueprint
 from datetime import datetime
+import logging
+
+# Blueprintの作成
+bp = Blueprint("api", __name__, url_prefix="/api")
+
+# ロガーの設定
+logger = logging.getLogger(__name__)
+
+@bp.route("/health", methods=["GET"])
+def health_check():
+    """
+    ヘルスチェックエンドポイント
+    
+    Returns:
+        dict: ヘルスステータス情報
+    """
+    return jsonify({"status": "healthy"})
 
 @bp.route("/detailed-status", methods=["GET"])
-def detailed_status() -> Response:
+def detailed_status():
     """
     詳細なサービスステータス情報を返すエンドポイント
     
@@ -31,13 +47,20 @@ def detailed_status() -> Response:
         import platform
         import psutil
         
+        # diskusageの処理を修正
+        disk = psutil.disk_usage("/")
         system_info = {
             "platform": platform.platform(),
             "python_version": platform.python_version(),
             "cpu_count": psutil.cpu_count(),
             "memory_total": psutil.virtual_memory().total,
             "memory_available": psutil.virtual_memory().available,
-            "disk_usage": dict(psutil.disk_usage("/").__dict__)
+            "disk_usage": {
+                "total": disk.total,
+                "used": disk.used,
+                "free": disk.free,
+                "percent": disk.percent
+            }
         }
         
         # レスポンス構築
