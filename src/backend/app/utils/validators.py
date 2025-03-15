@@ -1,21 +1,92 @@
 """
 Input validation utilities for ManzAI Studio API.
 
-This module provides functions for validating input data for API endpoints.
+This module provides Pydantic models for validating input data for API endpoints.
 It includes validation for models, prompts, script generation parameters, etc.
 """
 
 import os
 import json
 import re
-from typing import Dict, Any, List, Optional, Union, Tuple
+from enum import Enum
+from typing import Dict, Any, List, Optional, Union, Tuple, Set
 
+from pydantic import BaseModel, Field, validator, root_validator
 from werkzeug.datastructures import FileStorage
 
 
+class ModelType(str, Enum):
+    """モデルタイプの列挙型"""
+    TSUKKOMI = "tsukkomi"
+    BOKE = "boke"
+    UNKNOWN = "unknown"
+
+
+class ModelData(BaseModel):
+    """モデル登録データのバリデーション用モデル"""
+    name: str = Field(..., description="モデル名")
+    type: ModelType = Field(..., description="モデルタイプ")
+    description: Optional[str] = Field(None, description="モデルの説明")
+    metadata: Optional[Dict[str, Any]] = Field(None, description="追加のメタデータ")
+    
+    @validator("name")
+    def name_must_not_be_empty(cls, v: str) -> str:
+        """モデル名が空でないことを検証"""
+        if not v.strip():
+            raise ValueError("モデル名は空にできません")
+        return v
+
+
+class PromptData(BaseModel):
+    """プロンプトデータのバリデーション用モデル"""
+    name: str = Field(..., description="プロンプト名")
+    content: str = Field(..., description="プロンプト内容")
+    description: Optional[str] = Field(None, description="プロンプトの説明")
+    tags: List[str] = Field(default_factory=list, description="プロンプトのタグ")
+    
+    @validator("name")
+    def validate_name_format(cls, v: str) -> str:
+        """プロンプト名のフォーマットを検証"""
+        if not v.strip():
+            raise ValueError("プロンプト名は空にできません")
+        if not re.match(r'^[a-zA-Z0-9_-]+$', v):
+            raise ValueError("プロンプト名は英数字、アンダースコア、ハイフンのみを含むことができます")
+        return v
+    
+    @validator("content")
+    def content_must_not_be_empty(cls, v: str) -> str:
+        """プロンプト内容が空でないことを検証"""
+        if not v.strip():
+            raise ValueError("プロンプト内容は空にできません")
+        return v
+    
+    @validator("tags", each_item=True)
+    def tags_must_be_strings(cls, v: str) -> str:
+        """各タグが文字列であることを検証"""
+        if not isinstance(v, str):
+            raise ValueError("各タグは文字列である必要があります")
+        return v
+
+
+class ScriptParams(BaseModel):
+    """スクリプト生成パラメータのバリデーション用モデル"""
+    topic: str = Field(..., description="生成するスクリプトのトピック")
+    prompt_name: Optional[str] = Field(None, description="使用するプロンプト名")
+    max_length: int = Field(1000, ge=100, le=2000, description="生成する最大トークン数")
+    temperature: float = Field(0.7, ge=0, le=2, description="生成の多様性")
+    
+    @validator("topic")
+    def topic_must_not_be_empty(cls, v: str) -> str:
+        """トピックが空でないことを検証"""
+        if not v.strip():
+            raise ValueError("トピックは空にできません")
+        return v.strip()
+
+# 以前の関数ベースのバリデーションの互換性維持のための関数
+
 def validate_model_data(data: Dict[str, Any]) -> Tuple[bool, str]:
     """
-    Validate model registration data.
+    Validate model registration data using Pydantic model.
     
     Args:
         data: Dictionary containing model data to validate
@@ -23,28 +94,16 @@ def validate_model_data(data: Dict[str, Any]) -> Tuple[bool, str]:
     Returns:
         Tuple of (is_valid, error_message)
     """
-    required_fields = ['name', 'type']
-    
-    # Check required fields
-    for field in required_fields:
-        if field not in data:
-            return False, f"Missing required field: {field}"
-    
-    # Validate model type
-    valid_types = ['tsukkomi', 'boke', 'unknown']
-    if data['type'] not in valid_types:
-        return False, f"Invalid model type: {data['type']}. Must be one of {valid_types}"
-    
-    # Validate name (not empty)
-    if not data['name'] or not isinstance(data['name'], str):
-        return False, "Model name must be a non-empty string"
-    
-    return True, ""
+    try:
+        ModelData(**data)
+        return True, ""
+    except Exception as e:
+        return False, str(e)
 
 
 def validate_prompt_data(data: Dict[str, Any]) -> Tuple[bool, str]:
     """
-    Validate prompt data for creation or update.
+    Validate prompt data for creation or update using Pydantic model.
     
     Args:
         data: Dictionary containing prompt data to validate
@@ -52,42 +111,16 @@ def validate_prompt_data(data: Dict[str, Any]) -> Tuple[bool, str]:
     Returns:
         Tuple of (is_valid, error_message)
     """
-    required_fields = ['name', 'content']
-    
-    # Check required fields
-    for field in required_fields:
-        if field not in data:
-            return False, f"Missing required field: {field}"
-    
-    # Validate name (not empty)
-    if not data['name'] or not isinstance(data['name'], str):
-        return False, "Prompt name must be a non-empty string"
-    
-    # Validate name format (alphanumeric, underscores, hyphens only)
-    if not re.match(r'^[a-zA-Z0-9_-]+$', data['name']):
-        return False, "Prompt name must contain only letters, numbers, underscores, and hyphens"
-    
-    # Validate content (not empty)
-    if not data['content'] or not isinstance(data['content'], str):
-        return False, "Prompt content must be a non-empty string"
-    
-    # Check optional fields
-    if 'description' in data and not isinstance(data['description'], str):
-        return False, "Prompt description must be a string"
-    
-    if 'tags' in data:
-        if not isinstance(data['tags'], list):
-            return False, "Tags must be a list"
-        for tag in data['tags']:
-            if not isinstance(tag, str):
-                return False, "Each tag must be a string"
-    
-    return True, ""
+    try:
+        PromptData(**data)
+        return True, ""
+    except Exception as e:
+        return False, str(e)
 
 
 def validate_script_params(data: Dict[str, Any]) -> Tuple[bool, str]:
     """
-    Validate script generation parameters.
+    Validate script generation parameters using Pydantic model.
     
     Args:
         data: Dictionary containing script generation parameters
@@ -95,45 +128,36 @@ def validate_script_params(data: Dict[str, Any]) -> Tuple[bool, str]:
     Returns:
         Tuple of (is_valid, error_message)
     """
-    # Check required fields
-    if 'topic' not in data:
-        return False, "Missing required field: topic"
-    
-    # Validate topic (not empty)
-    if not data['topic'] or not isinstance(data['topic'], str):
-        return False, "Topic must be a non-empty string"
-    
-    # Check optional fields with defaults
-    if 'prompt_name' in data and not isinstance(data['prompt_name'], str):
-        return False, "prompt_name must be a string"
-    
-    if 'max_length' in data:
-        if not isinstance(data['max_length'], int) or data['max_length'] < 100 or data['max_length'] > 2000:
-            return False, "max_length must be an integer between 100 and 2000"
-    
-    if 'temperature' in data:
-        if not isinstance(data['temperature'], (int, float)) or data['temperature'] < 0 or data['temperature'] > 2:
-            return False, "temperature must be a number between 0 and 2"
-    
-    return True, ""
+    try:
+        ScriptParams(**data)
+        return True, ""
+    except Exception as e:
+        return False, str(e)
+
+
+class FileValidationResult(BaseModel):
+    """ファイル検証結果モデル"""
+    is_valid: bool = Field(False, description="ファイルが有効かどうか")
+    error_message: str = Field("", description="エラーメッセージ（該当する場合）")
 
 
 def validate_model_file(file: FileStorage) -> Tuple[bool, str]:
     """
-    Validate a Live2D model file upload.
+    Validate a model file upload
     
     Args:
-        file: The uploaded file to validate
+        file: The uploaded file
         
     Returns:
-        Tuple of (is_valid, error_message)
+        tuple: (is_valid, error_message)
     """
     if not file:
         return False, "No file provided"
     
     # Check file extension
     allowed_extensions = ['.model3.json', '.zip']
-    file_ext = os.path.splitext(file.filename)[-1].lower()
+    filename = file.filename or ""  # Ensure filename is not None
+    file_ext = os.path.splitext(filename)[-1].lower()
     
     if file_ext not in allowed_extensions:
         return False, f"Invalid file extension: {file_ext}. Must be one of {allowed_extensions}"
