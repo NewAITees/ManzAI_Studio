@@ -1,6 +1,6 @@
 import pytest
 from unittest.mock import patch, MagicMock
-from src.app import create_app
+from src.backend.app import create_app
 
 @pytest.fixture
 def app():

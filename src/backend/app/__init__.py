@@ -2,10 +2,10 @@
 from flask import Flask
 from flask_cors import CORS
 
-from src.backend.app.config import Config, DevelopmentConfig
+from src.backend.app.config import BaseConfig, DevelopmentConfig
 
 
-def create_app(config_object: Config = DevelopmentConfig) -> Flask:
+def create_app(config_object: BaseConfig = DevelopmentConfig) -> Flask:
     """Create and configure the Flask application.
 
     Args:

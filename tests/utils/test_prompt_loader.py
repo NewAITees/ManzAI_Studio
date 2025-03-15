@@ -1,7 +1,7 @@
 import pytest
 from unittest.mock import patch, mock_open
 import os
-from src.utils.prompt_loader import load_prompt
+from src.utils.prompt_loader import load_prompt, PromptTemplateNotFoundError
 
 def test_load_prompt_replaces_variables():
     """load_promptが変数を正しく置き換えることを確認"""
@@ -13,9 +13,9 @@ def test_load_prompt_replaces_variables():
         assert result == "トピック: 猫について考えてください。また、犬も検討してください。"
 
 def test_load_prompt_file_not_found():
-    """存在しないテンプレートファイルを指定したときにFileNotFoundErrorが発生することを確認"""
+    """存在しないテンプレートファイルを指定したときにPromptTemplateNotFoundErrorが発生することを確認"""
     with patch('builtins.open', side_effect=FileNotFoundError()):
-        with pytest.raises(FileNotFoundError):
+        with pytest.raises(PromptTemplateNotFoundError):
             load_prompt("non_existent_template")
 
 def test_load_prompt_builds_correct_path():

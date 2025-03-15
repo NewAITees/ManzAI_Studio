@@ -8,7 +8,7 @@ import subprocess
 import threading
 from typing import Dict, List, Any, Optional, Tuple, Union, cast
 
-from flask import Flask, request, jsonify, send_from_directory, Response, send_file
+from flask import Flask, request, jsonify, send_from_directory, Response, send_file, redirect
 from flask_cors import CORS
 import traceback
 from pydantic import ValidationError
@@ -212,6 +212,40 @@ def get_audio(filename: str) -> Union[Response, Tuple[Response, int]]:
     except Exception as e:
         logger.exception(f"Error serving audio file: {e}")
         return jsonify({"error": str(e)}), 500
+
+@app.route("/api/generate", methods=["POST"])
+def generate_redirect() -> Response:
+    """
+    /api/generateへのリクエストを/api/generate-scriptにリダイレクト
+    
+    Returns:
+        Response: リダイレクトレスポンス
+    """
+    return generate_script()
+
+@app.route("/api/speakers", methods=["GET"])
+def speakers() -> Response:
+    """
+    話者一覧を提供するエンドポイント
+    
+    Returns:
+        Response: 利用可能な話者一覧
+    """
+    try:
+        status_data = status()
+        if isinstance(status_data, tuple):
+            return status_data
+        
+        # statusレスポンスからvoicevoxの話者情報を抽出
+        response_data = json.loads(status_data.data)
+        speakers_data = response_data.get("voicevox", {}).get("speakers", [])
+        
+        return cast(Response, jsonify(speakers_data))
+    except Exception as e:
+        logger.exception(f"Error getting speakers: {e}")
+        return cast(Response, jsonify({
+            "error": str(e)
+        })), 500
 
 def start_frontend():
     """フロントエンド開発サーバーを別スレッドで起動する"""

@@ -25,3 +25,14 @@ frontend/node_modules/
 
 
 frontend/models/
+
+
+
+#products
+
+logs/
+*.wav
+.mypy_cache
+.pytest_cache
+.github
+.venv

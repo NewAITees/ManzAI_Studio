@@ -173,3 +173,81 @@ requests.exceptions.HTTPError: 404 Client Error: Not Found for url: http://local
 2025-03-15 23:44:44,011 - src.services.ollama_service - INFO - OllamaService initialized
 2025-03-15 23:44:46,610 - src.services.ollama_service - INFO - OllamaClient initialized with base URL: http://localhost:11434
 2025-03-15 23:44:46,611 - src.services.ollama_service - INFO - OllamaService initialized
+2025-03-15 23:45:40,759 - src.services.ollama_service - INFO - OllamaClient initialized with base URL: http://localhost:11434
+2025-03-15 23:45:40,759 - src.services.ollama_service - INFO - OllamaService initialized
+2025-03-15 23:46:07,609 - src.services.ollama_service - INFO - OllamaClient initialized with base URL: http://localhost:11434
+2025-03-15 23:46:07,609 - src.services.ollama_service - INFO - OllamaService initialized
+2025-03-15 23:46:44,249 - src.services.ollama_service - INFO - OllamaClient initialized with base URL: http://localhost:11434
+2025-03-15 23:46:44,249 - src.services.ollama_service - INFO - OllamaService initialized
+2025-03-15 23:46:45,069 - src.services.ollama_service - INFO - OllamaClient initialized with base URL: http://localhost:11434
+2025-03-15 23:46:45,070 - src.services.ollama_service - INFO - OllamaService initialized
+2025-03-15 23:46:49,674 - src.services.ollama_service - INFO - OllamaClient initialized with base URL: http://localhost:11434
+2025-03-15 23:46:49,674 - src.services.ollama_service - INFO - OllamaService initialized
+2025-03-15 23:46:49,676 - src.services.ollama_service - INFO - Generating manzai script for topic: 猫 with model: llama3
+2025-03-15 23:46:49,712 - src.services.ollama_service - INFO - OllamaClient initialized with base URL: http://localhost:11434
+2025-03-15 23:46:49,712 - src.services.ollama_service - INFO - OllamaService initialized
+2025-03-15 23:46:49,739 - src.services.ollama_service - INFO - OllamaClient initialized with base URL: http://localhost:11434
+2025-03-15 23:46:49,739 - src.services.ollama_service - INFO - OllamaService initialized
+2025-03-15 23:46:49,766 - src.services.ollama_service - INFO - OllamaClient initialized with base URL: http://localhost:11434
+2025-03-15 23:46:49,766 - src.services.ollama_service - INFO - OllamaService initialized
+2025-03-15 23:46:49,766 - src.services.ollama_service - INFO - Generating manzai script for topic: テスト with model: llama3
+2025-03-15 23:46:49,767 - src.services.ollama_service - ERROR - Error communicating with Ollama API: 
+2025-03-15 23:46:49,784 - src.services.ollama_service - INFO - OllamaClient initialized with base URL: http://localhost:11434
+2025-03-15 23:46:49,784 - src.services.ollama_service - INFO - OllamaService initialized
+2025-03-15 23:46:49,785 - src.services.ollama_service - INFO - Generating manzai script for topic: テスト with model: llama3
+2025-03-15 23:46:49,809 - src.services.ollama_service - INFO - OllamaClient initialized with base URL: http://localhost:11434
+2025-03-15 23:46:49,810 - src.services.ollama_service - INFO - OllamaService initialized
+2025-03-15 23:46:49,812 - src.services.ollama_service - INFO - OllamaClient initialized with base URL: http://localhost:11434
+2025-03-15 23:46:49,812 - src.services.ollama_service - INFO - OllamaService initialized
+2025-03-15 23:46:49,812 - src.services.ollama_service - INFO - Generating manzai script for topic: テスト with model: llama3
+2025-03-15 23:46:49,812 - src.services.ollama_service - ERROR - Error communicating with Ollama API: 
+2025-03-15 23:46:49,832 - src.services.ollama_service - INFO - OllamaClient initialized with base URL: http://localhost:11434
+2025-03-15 23:46:49,832 - src.services.ollama_service - INFO - OllamaService initialized
+2025-03-15 23:46:49,833 - src.services.ollama_service - INFO - Generating manzai script for topic: テスト with model: llama3
+2025-03-15 23:46:49,833 - src.services.ollama_service - ERROR - Error communicating with Ollama API: 
+2025-03-15 23:48:14,010 - src.services.ollama_service - INFO - OllamaClient initialized with base URL: http://localhost:11434
+2025-03-15 23:48:14,011 - src.services.ollama_service - INFO - OllamaService initialized
+2025-03-15 23:48:14,770 - src.services.ollama_service - INFO - OllamaClient initialized with base URL: http://localhost:11434
+2025-03-15 23:48:14,770 - src.services.ollama_service - INFO - OllamaService initialized
+2025-03-15 23:48:21,407 - src.services.ollama_service - INFO - OllamaClient initialized with base URL: http://localhost:11434
+2025-03-15 23:48:21,407 - src.services.ollama_service - INFO - OllamaService initialized
+2025-03-15 23:48:21,409 - src.services.ollama_service - INFO - Generating manzai script for topic: 猫 with model: llama3
+2025-03-15 23:48:21,460 - src.services.ollama_service - INFO - OllamaClient initialized with base URL: http://localhost:11434
+2025-03-15 23:48:21,460 - src.services.ollama_service - INFO - OllamaService initialized
+2025-03-15 23:48:21,541 - src.services.ollama_service - INFO - OllamaClient initialized with base URL: http://localhost:11434
+2025-03-15 23:48:21,541 - src.services.ollama_service - INFO - OllamaService initialized
+2025-03-15 23:48:21,587 - src.services.ollama_service - INFO - OllamaClient initialized with base URL: http://localhost:11434
+2025-03-15 23:48:21,587 - src.services.ollama_service - INFO - OllamaService initialized
+2025-03-15 23:48:21,588 - src.services.ollama_service - INFO - Generating manzai script for topic: テスト with model: llama3
+2025-03-15 23:48:21,589 - src.services.ollama_service - ERROR - Error communicating with Ollama API: 
+2025-03-15 23:48:21,615 - src.services.ollama_service - INFO - OllamaClient initialized with base URL: http://localhost:11434
+2025-03-15 23:48:21,615 - src.services.ollama_service - INFO - OllamaService initialized
+2025-03-15 23:48:21,616 - src.services.ollama_service - INFO - Generating manzai script for topic: テスト with model: llama3
+2025-03-15 23:48:21,641 - src.services.ollama_service - INFO - OllamaClient initialized with base URL: http://localhost:11434
+2025-03-15 23:48:21,641 - src.services.ollama_service - INFO - OllamaService initialized
+2025-03-15 23:48:21,643 - src.services.ollama_service - INFO - OllamaClient initialized with base URL: http://localhost:11434
+2025-03-15 23:48:21,644 - src.services.ollama_service - INFO - OllamaService initialized
+2025-03-15 23:48:21,644 - src.services.ollama_service - INFO - Generating manzai script for topic: テスト with model: llama3
+2025-03-15 23:48:21,644 - src.services.ollama_service - ERROR - Error communicating with Ollama API: 
+2025-03-15 23:48:21,726 - src.services.ollama_service - INFO - OllamaClient initialized with base URL: http://localhost:11434
+2025-03-15 23:48:21,727 - src.services.ollama_service - INFO - OllamaService initialized
+2025-03-15 23:48:21,731 - src.services.ollama_service - INFO - Generating manzai script for topic: テスト with model: llama3
+2025-03-15 23:48:21,733 - src.services.ollama_service - ERROR - Error communicating with Ollama API: 
+2025-03-15 23:48:28,736 - src.services.ollama_service - INFO - OllamaClient initialized with base URL: http://localhost:11434
+2025-03-15 23:48:28,736 - src.services.ollama_service - INFO - OllamaService initialized
+2025-03-15 23:52:18,330 - src.services.ollama_service - INFO - OllamaClient initialized with base URL: http://localhost:11434
+2025-03-15 23:52:18,330 - src.services.ollama_service - INFO - OllamaService initialized
+2025-03-15 23:52:53,113 - src.services.ollama_service - INFO - OllamaClient initialized with base URL: http://localhost:11434
+2025-03-15 23:52:53,113 - src.services.ollama_service - INFO - OllamaService initialized
+2025-03-15 23:55:16,650 - src.services.ollama_service - INFO - OllamaClient initialized with base URL: http://custom-url
+2025-03-15 23:55:16,651 - src.services.ollama_service - INFO - OllamaService initialized
+2025-03-15 23:55:44,790 - src.services.ollama_service - INFO - OllamaClient initialized with base URL: http://localhost:11434
+2025-03-15 23:55:44,790 - src.services.ollama_service - INFO - OllamaService initialized
+2025-03-15 23:56:11,393 - src.services.ollama_service - INFO - OllamaClient initialized with base URL: http://localhost:11434
+2025-03-15 23:56:11,393 - src.services.ollama_service - INFO - OllamaService initialized
+2025-03-15 23:56:23,170 - src.services.ollama_service - INFO - OllamaClient initialized with base URL: http://localhost:11434
+2025-03-15 23:56:23,170 - src.services.ollama_service - INFO - OllamaService initialized
+2025-03-15 23:56:23,283 - src.services.ollama_service - INFO - OllamaClient initialized with base URL: http://custom-url
+2025-03-15 23:56:23,283 - src.services.ollama_service - INFO - OllamaService initialized
+2025-03-15 23:56:38,714 - src.services.ollama_service - INFO - OllamaClient initialized with base URL: http://localhost:11434
+2025-03-15 23:56:38,714 - src.services.ollama_service - INFO - OllamaService initialized

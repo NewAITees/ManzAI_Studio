@@ -9,7 +9,7 @@ class OllamaModel(BaseModel):
     """Ollamaモデル情報を表すモデル"""
     name: str = Field(..., description="モデル名")
     size: Optional[int] = Field(None, description="モデルサイズ（バイト）")
-    modified_at: Optional[int] = Field(None, description="最終更新タイムスタンプ")
+    modified_at: Optional[str] = Field(None, description="最終更新タイムスタンプ（ISO 8601形式の文字列）")
     digest: Optional[str] = Field(None, description="モデルダイジェスト")
     details: Optional[Dict[str, Any]] = Field(None, description="モデルの詳細情報")
 

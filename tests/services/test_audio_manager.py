@@ -27,8 +27,10 @@ def test_save_audio_file(audio_manager, sample_audio_data):
 def test_get_audio_file(audio_manager, sample_audio_data):
     """音声ファイルが正しく取得できることを確認"""
     file_path = audio_manager.save_audio(sample_audio_data, "test_audio")
+    # 実際のファイル名を使用する
+    actual_filename = os.path.basename(file_path)
     
-    retrieved_data = audio_manager.get_audio("test_audio")
+    retrieved_data = audio_manager.get_audio(actual_filename)
     assert retrieved_data == sample_audio_data
 
 def test_get_audio_file_not_found(audio_manager):

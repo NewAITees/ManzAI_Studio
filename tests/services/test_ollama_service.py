@@ -12,9 +12,8 @@ def ollama_service():
 
 def test_init_with_custom_params():
     """カスタムパラメータでOllamaServiceが初期化されることを確認"""
-    service = OllamaService("http://custom-url", "custom-model")
-    assert service.base_url == "http://custom-url"
-    assert service.model == "custom-model"
+    service = OllamaService(base_url="http://custom-url")
+    assert service.client.base_url == "http://custom-url"
 
 def test_generate_manzai_script_returns_valid_structure(ollama_service):
     """Ollamaサービスが有効な漫才スクリプト構造を返すことを確認"""
