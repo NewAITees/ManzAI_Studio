@@ -30,6 +30,12 @@ development_mode = os.environ.get("FLASK_ENV", "development") == "development"
 # テスト用のフラグ
 testing_mode = False
 
+def init_testing_mode():
+    """テストモードを有効化"""
+    global testing_mode
+    testing_mode = True
+    return True
+
 # ロガーの設定
 logging.basicConfig(
     level=logging.INFO,
@@ -78,13 +84,6 @@ def create_app():
 
     # サービスの初期化
     audio_manager = AudioManager(audio_dir="audio")
-
-    # テスト用の設定の初期化関数
-    def init_testing_mode():
-        """テストモードを有効化"""
-        global testing_mode
-        testing_mode = True
-        return True
 
     @app.route("/", methods=["GET"])
     def index() -> Response:
@@ -383,7 +382,9 @@ def create_app():
 
     return app
 
+# アプリケーションインスタンスを作成
+app = create_app()
+
 if __name__ == "__main__":
     # 直接実行された場合
-    app = create_app()
     app.run() 

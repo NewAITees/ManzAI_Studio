@@ -9,8 +9,10 @@ from flask import Flask
 from unittest.mock import patch, MagicMock
 
 # アプリケーションのインポート
-from src.app import app as flask_app
+from src.app import create_app
 
+# テスト用アプリケーションインスタンスを作成
+app = create_app()
 
 @pytest.fixture
 def app():
@@ -20,10 +22,10 @@ def app():
     Returns:
         Flaskアプリケーションのインスタンス
     """
-    flask_app.config.update({
+    app.config.update({
         "TESTING": True,
     })
-    return flask_app
+    return app
 
 
 @pytest.fixture

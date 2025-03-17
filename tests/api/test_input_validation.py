@@ -1,6 +1,9 @@
 import pytest
 import json
-from src.app import app
+from src.app import create_app
+
+# テスト用アプリケーションインスタンスを作成
+app = create_app()
 
 @pytest.fixture
 def client():

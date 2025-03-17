@@ -1,7 +1,10 @@
 import pytest
 import os
 from unittest.mock import patch, MagicMock
-from src.app import app, init_testing_mode
+from src.app import create_app
+
+# テスト用アプリケーションインスタンスを作成
+app = create_app()
 
 @pytest.fixture(scope="module", autouse=True)
 def setup_environment():
