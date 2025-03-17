@@ -1,9 +1,38 @@
-.cursorignore
-poetry.lock
-config/
+# Python related
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+.env
 .venv/
-.gitignore
-.git/
-docs/dev_plan/
+.github/
+# Poetry
+poetry.lock
+dist/
 
+# Project specific
+src/backend/models/
+
+# Version control
+.git/
+
+frontend/package.json
 frontend/package-lock.json
+src/frontend/node_modules/
+
+frontend/node_modules/
+
+
+frontend/public/live2d/models/
+docs/dev_plan
+
+audio/
+#products
+
+logs/
+*.wav
+.mypy_cache
+.pytest_cache
+.github
+.venv

@@ -6,7 +6,7 @@ __pycache__/
 .Python
 .env
 .venv/
-
+.github/
 # Poetry
 poetry.lock
 dist/
@@ -18,7 +18,7 @@ src/backend/models/
 .git/
 
 frontend/package.json
-
+frontend/package-lock.json
 src/frontend/node_modules/
 
 frontend/node_modules/
@@ -27,7 +27,7 @@ frontend/node_modules/
 frontend/public/live2d/models/
 docs/dev_plan
 
-
+audio/
 #products
 
 logs/
