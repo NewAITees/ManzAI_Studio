@@ -8,14 +8,16 @@ from unittest.mock import patch, MagicMock
 from tests.utils.test_helpers import app, client
 
 @pytest.fixture
-def mock_prompt_loader():
+def mock_prompt_loader(app):
     """
     モックプロンプトローダーを提供するフィクスチャ
+    
+    Args:
+        app: Flaskアプリケーションのインスタンス
     """
-    with patch('src.app.prompt_loader') as mock_loader:
-        mock_instance = MagicMock()
-        mock_loader.return_value = mock_instance
-        yield mock_instance
+    mock_instance = MagicMock()
+    app.prompt_loader = mock_instance
+    return mock_instance
 
 @pytest.fixture
 def sample_prompts():

@@ -1,12 +1,13 @@
+"""並行リクエストのテスト"""
+
+import os
 import pytest
 import threading
 import time
 import json
-import os
+from flask import Flask
 from src.app import create_app
-
-# テスト用アプリケーションインスタンスを作成
-app = create_app()
+from tests.utils.test_helpers import init_testing_mode
 
 @pytest.fixture(scope="module", autouse=True)
 def setup_environment():
@@ -15,10 +16,13 @@ def setup_environment():
     os.environ["FLASK_ENV"] = "development"
     # テストモードを有効化
     init_testing_mode()
-    yield
-    # テスト後のクリーンアップ
-    if "FLASK_ENV" in os.environ:
-        del os.environ["FLASK_ENV"]
+
+@pytest.fixture
+def app():
+    """テスト用アプリケーションを作成"""
+    app = create_app()
+    app.config["TESTING"] = True
+    return app
 
 def test_multiple_concurrent_requests():
     """複数の同時リクエストが適切に処理されることを確認"""

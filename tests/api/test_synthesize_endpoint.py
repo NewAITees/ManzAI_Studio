@@ -8,23 +8,23 @@ from unittest.mock import patch, MagicMock
 from tests.utils.test_helpers import app, client, create_mock_voicevox_service, create_mock_audio_manager
 
 @pytest.fixture
-def mock_services():
+def mock_services(app):
     """
     モックサービスを提供するフィクスチャ
+    
+    Args:
+        app: Flaskアプリケーションのインスタンス
     """
-    with patch('src.app.voicevox_service') as mock_voicevox, \
-         patch('src.app.audio_manager') as mock_audio_manager:
-        
-        mock_voicevox_instance = create_mock_voicevox_service()
-        mock_audio_manager_instance = create_mock_audio_manager()
-        
-        mock_voicevox.return_value = mock_voicevox_instance
-        mock_audio_manager.return_value = mock_audio_manager_instance
-        
-        yield {
-            'voicevox': mock_voicevox_instance,
-            'audio_manager': mock_audio_manager_instance
-        }
+    mock_voicevox_instance = create_mock_voicevox_service()
+    mock_audio_manager_instance = create_mock_audio_manager()
+    
+    app.voicevox_service = mock_voicevox_instance
+    app.audio_manager = mock_audio_manager_instance
+    
+    return {
+        'voicevox': mock_voicevox_instance,
+        'audio_manager': mock_audio_manager_instance
+    }
 
 def test_synthesize_endpoint_success(client, mock_services):
     """

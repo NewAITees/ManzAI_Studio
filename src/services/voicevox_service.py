@@ -30,9 +30,31 @@ class VoiceVoxService:
         os.makedirs(self.output_dir, exist_ok=True)
         logger.info(f"VoiceVoxService initialized with base URL: {base_url}")
     
-    def generate_voice(self, text: str, speaker_id: int) -> bytes:
+    def get_fallback_audio(self, text: str) -> bytes:
+        """フォールバック用の音声データを生成
+
+        Args:
+            text: 読み上げるテキスト
+
+        Returns:
+            音声データ（バイト列）
         """
-        テキストから音声を生成します。
+        logger.warning(f"Using fallback audio for text: {text}")
+        
+        # 簡単な無音データを生成（1秒間の44.1kHz、16bitのモノラル無音）
+        sample_rate = 44100
+        duration = 1  # 1秒
+        num_samples = sample_rate * duration
+        
+        # 16bitの無音データを生成（0x8000で中央値を設定）
+        silence_data = bytearray()
+        for _ in range(num_samples):
+            silence_data.extend([0x00, 0x80])  # リトルエンディアンで0x8000を追加
+        
+        return bytes(silence_data)
+
+    def generate_voice(self, text: str, speaker_id: int) -> bytes:
+        """テキストから音声を生成します。
 
         Args:
             text (str): 音声化するテキスト
@@ -54,7 +76,8 @@ class VoiceVoxService:
             # 音声合成のクエリを作成
             query_response = requests.post(
                 f"{self.base_url}/audio_query",
-                params={"text": text, "speaker": speaker_id}
+                params={"text": text, "speaker": speaker_id},
+                timeout=30  # タイムアウトを30秒に設定
             )
             if query_response.status_code >= 400:
                 error_msg = f"VoiceVox API returned error status: {query_response.status_code}"
@@ -66,7 +89,8 @@ class VoiceVoxService:
             synthesis_response = requests.post(
                 f"{self.base_url}/synthesis",
                 params={"speaker": speaker_id},
-                json=query_data
+                json=query_data,
+                timeout=30  # タイムアウトを30秒に設定
             )
             if synthesis_response.status_code >= 400:
                 error_msg = f"VoiceVox API returned error status: {synthesis_response.status_code}"
@@ -74,6 +98,10 @@ class VoiceVoxService:
                 raise VoiceVoxServiceError(error_msg)
             return synthesis_response.content
 
+        except requests.exceptions.Timeout:
+            error_msg = "Timeout error occurred while communicating with VoiceVox API"
+            logging.error(error_msg)
+            raise VoiceVoxServiceError(error_msg)
         except requests.exceptions.ConnectionError:
             error_msg = "Connection error with VoiceVox API"
             logging.error(error_msg)

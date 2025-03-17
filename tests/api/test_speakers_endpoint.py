@@ -8,14 +8,16 @@ from unittest.mock import patch
 from tests.utils.test_helpers import app, client, create_mock_voicevox_service
 
 @pytest.fixture
-def mock_voicevox_service():
+def mock_voicevox_service(app):
     """
     モックVoiceVoxサービスを提供するフィクスチャ
+    
+    Args:
+        app: Flaskアプリケーションのインスタンス
     """
-    with patch('src.app.voicevox_service') as mock_service:
-        mock_service_instance = create_mock_voicevox_service()
-        mock_service.return_value = mock_service_instance
-        yield mock_service_instance
+    mock_service_instance = create_mock_voicevox_service()
+    app.voicevox_service = mock_service_instance
+    return mock_service_instance
 
 def test_speakers_endpoint_success(client, mock_voicevox_service):
     """

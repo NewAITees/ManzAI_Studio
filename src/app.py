@@ -338,6 +338,21 @@ def create_app():
                 "error": str(e)
             })), 500
 
+    @app.route("/api/models", methods=["GET"])
+    def list_models() -> Response:
+        """
+        利用可能なモデル一覧を返すエンドポイント
+        
+        Returns:
+            Response: モデル一覧
+        """
+        try:
+            models = app.ollama_service.list_models()
+            return cast(Response, jsonify({"models": models}))
+        except Exception as e:
+            logger.exception(f"Error listing models: {e}")
+            return cast(Response, jsonify({"error": str(e)})), 500
+
     def start_frontend():
         """フロントエンド開発サーバーを別スレッドで起動する"""
         frontend_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "frontend")

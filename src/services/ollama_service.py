@@ -420,52 +420,55 @@ class OllamaService:
         self.prompts: Dict[str, str] = {}  # プロンプトキャッシュ
         logger.info(f"OllamaService initialized with {detected_type} instance at {base_url}")
     
-    def _parse_manzai_script(self, data: Dict[str, Any]) -> List[ScriptItem]:
-        """生成されたJSONから台本データを抽出
-        
+    def _parse_manzai_script(self, data: Union[str, Dict[str, Any]]) -> List[ScriptItem]:
+        """漫才スクリプトを解析してScriptItemのリストを返す
+
         Args:
-            data: 生成されたJSONデータ
-            
+            data: 解析対象のデータ（文字列またはdict）
+
         Returns:
-            台本のリスト
-            
-        Raises:
-            OllamaServiceError: データの形式が不正な場合
+            ScriptItemのリスト
         """
-        # スクリプトの取得
-        script = data.get("script", [])
+        if isinstance(data, dict):
+            if "script" not in data:
+                raise OllamaServiceError("Script not found in response")
+            text = data["script"]
+        else:
+            text = data
+
+        # コードブロックの抽出
+        if "```" in text:
+            blocks = text.split("```")
+            for block in blocks:
+                if block.strip():
+                    text = block.strip()
+                    break
+
+        # 行ごとに分割して解析
+        lines = [line.strip() for line in text.split("\n") if line.strip()]
+        script_items = []
         
-        # 形式の検証
-        if not isinstance(script, list):
-            raise OllamaServiceError("Generated script is not a list")
-        
-        if not script:
-            raise OllamaServiceError("Generated script is empty")
-        
-        # 各行のvalidation
-        validated_script: List[ScriptItem] = []
-        
-        for i, line in enumerate(script):
-            if not isinstance(line, dict):
-                raise OllamaServiceError(f"Script line {i} is not a dictionary")
+        for line in lines:
+            if ":" not in line:
+                continue
             
-            role = line.get("role", "")
-            text = line.get("text", "")
+            speaker, content = line.split(":", 1)
+            speaker = speaker.strip()
+            content = content.strip()
             
-            if not role or not text:
-                raise OllamaServiceError(f"Script line {i} is missing role or text")
+            if not speaker or not content:
+                continue
             
-            # 役割の正規化
-            if role.lower() in ["boke", "ボケ"]:
-                normalized_role = "boke"
-            elif role.lower() in ["tsukkomi", "つっこみ"]:
-                normalized_role = "tsukkomi"
-            else:
-                normalized_role = role.lower()
+            # 話者に応じてロールを割り当て
+            role = "tsukkomi" if speaker == "A" else "boke"
             
-            validated_script.append({"role": normalized_role, "text": text})
+            script_items.append(ScriptItem(
+                speaker=speaker,
+                text=content,
+                role=role
+            ))
         
-        return validated_script
+        return script_items
     
     def check_availability(self) -> Dict[str, Any]:
         """Ollamaサービスの可用性を確認
@@ -592,4 +595,26 @@ class OllamaService:
         Returns:
             詳細なステータス情報
         """
-        return self.client.get_detailed_status() 
+        return self.client.get_detailed_status()
+
+    def get_fallback_response(self, topic: str) -> List[ScriptItem]:
+        """フォールバック用の応答を生成
+
+        Args:
+            topic: 話題
+
+        Returns:
+            ScriptItemのリスト
+        """
+        return [
+            ScriptItem(
+                speaker="A",
+                text=f"申し訳ありません。{topic}についての漫才を生成できませんでした。",
+                role="tsukkomi"
+            ),
+            ScriptItem(
+                speaker="B",
+                text="また後で試してみましょう。",
+                role="boke"
+            )
+        ] 

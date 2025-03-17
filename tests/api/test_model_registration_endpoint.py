@@ -9,14 +9,16 @@ from unittest.mock import patch, MagicMock
 from tests.utils.test_helpers import app, client
 
 @pytest.fixture
-def mock_model_service():
+def mock_model_service(app):
     """
     モックモデルサービスを提供するフィクスチャ
+    
+    Args:
+        app: Flaskアプリケーションのインスタンス
     """
-    with patch('src.app.model_service') as mock_service:
-        mock_instance = MagicMock()
-        mock_service.return_value = mock_instance
-        yield mock_instance
+    mock_instance = MagicMock()
+    app.ollama_service = mock_instance
+    return mock_instance
 
 def test_model_registration_success(client, mock_model_service):
     """
