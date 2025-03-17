@@ -4,6 +4,6 @@ config/
 .venv/
 .gitignore
 .git/
-.gitignore
-.gitignore
+doc/dev_plan/
 
+frontend/package-lock.json

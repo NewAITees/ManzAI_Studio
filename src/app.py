@@ -13,7 +13,7 @@ from flask import Flask, request, jsonify, send_from_directory, Response, send_f
 from flask_cors import CORS
 import traceback
 from pydantic import ValidationError, BaseModel
-from werkzeug.exceptions import BadRequest
+from werkzeug.exceptions import BadRequest, UnsupportedMediaType
 
 # サービスのインポート
 from src.services.ollama_service import OllamaService, OllamaServiceError
@@ -24,6 +24,8 @@ from src.models.script import GenerateScriptRequest, GenerateScriptResponse, Man
 from src.models.service import ServiceStatus, OllamaStatus, VoiceVoxStatus
 from src.models.script import ScriptLine, Role
 from src.routes import api as api_routes
+from src.utils.logger import logger
+from src.utils.exceptions import ContentTypeError
 
 # 開発モードの設定
 development_mode = os.environ.get("FLASK_ENV", "development") == "development"
@@ -52,9 +54,57 @@ class OllamaModel(BaseModel):
     details: Dict[str, Any] = {}
 
 def create_app():
-    """Flaskアプリケーションを作成する"""
-    app = Flask(__name__)
-    
+    """アプリケーションファクトリ関数"""
+    app = Flask(__name__, static_folder='../frontend/dist')
+    CORS(app)
+
+    # 開発モードの設定
+    app.config['DEVELOPMENT'] = development_mode
+    app.config['TESTING'] = testing_mode
+
+    # APIルートの登録
+    from src.routes.api import bp
+    app.register_blueprint(bp, url_prefix='/api')
+
+    # サービスの初期化
+    ollama_service = OllamaService()
+    voicevox_service = VoiceVoxService()
+    audio_manager = AudioManager()
+
+    # エラーハンドラーの登録
+    @app.errorhandler(400)
+    def bad_request(e):
+        return jsonify({"error": str(e)}), 400
+
+    @app.errorhandler(404)
+    def not_found(e):
+        return jsonify({"error": "Resource not found"}), 404
+
+    @app.errorhandler(500)
+    def internal_server_error(e):
+        return jsonify({"error": "Internal server error"}), 500
+
+    @app.before_request
+    def validate_content_type():
+        """リクエストのContent-Typeを検証"""
+        if request.method == 'POST':
+            content_type = request.headers.get('Content-Type', '')
+            
+            # ファイルアップロードエンドポイントの場合
+            if request.path.startswith('/api/models/'):
+                if not content_type.startswith('multipart/form-data'):
+                    logger.warning(f"🚫 Invalid Content-Type for file upload: {content_type}")
+                    raise ContentTypeError("Multipart form data required for file upload")
+            # その他のAPIエンドポイントの場合
+            elif not request.is_json and not content_type.startswith('application/json'):
+                logger.warning(f"🚫 Invalid Content-Type: {content_type}")
+                raise ContentTypeError()
+
+    @app.errorhandler(ContentTypeError)
+    def handle_content_type_error(e):
+        """Content-Typeエラーのハンドラ"""
+        return jsonify({'error': str(e)}), 415
+
     # 環境変数から設定を読み込む
     app.config.from_object('src.config.Config')
     
@@ -64,27 +114,11 @@ def create_app():
     ollama_model = os.environ.get('OLLAMA_MODEL', 'gemma3:4b')
     ollama_instance_type = os.environ.get('OLLAMA_INSTANCE_TYPE', 'auto')
     
-    # サービスの初期化
-    voicevox_service = VoiceVoxService(base_url=voicevox_url)
-    ollama_service = OllamaService(
-        base_url=ollama_url,
-        instance_type=ollama_instance_type
-    )
-    audio_manager = AudioManager(audio_dir=app.config['AUDIO_DIR'])
-    
     # サービスをアプリケーションに保存
     app.voicevox_service = voicevox_service
     app.ollama_service = ollama_service
     app.audio_manager = audio_manager
     
-    # APIルートを登録
-    app.register_blueprint(api_routes.bp)
-    
-    CORS(app)  # クロスオリジンリクエストを許可
-
-    # サービスの初期化
-    audio_manager = AudioManager(audio_dir="audio")
-
     @app.route("/", methods=["GET"])
     def index() -> Response:
         """

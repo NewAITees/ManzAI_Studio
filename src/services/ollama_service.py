@@ -9,10 +9,11 @@ from typing import Optional, Dict, List, Any, NoReturn, Union, cast, TypedDict
 
 import requests
 from requests.exceptions import RequestException, ConnectionError, Timeout
+from urllib.parse import urljoin
 
 from src.models.script import ManzaiScript, ScriptLine, Role
 from src.models.service import OllamaModel
-from src.utils.prompt_loader import load_prompt
+from src.utils.prompt_loader import PromptLoader
 
 # ロガーの設定
 logger = logging.getLogger(__name__)
@@ -418,6 +419,7 @@ class OllamaService:
         self.instance_type = detected_type
         self.base_url = base_url
         self.prompts: Dict[str, str] = {}  # プロンプトキャッシュ
+        self.prompt_loader = PromptLoader()
         logger.info(f"OllamaService initialized with {detected_type} instance at {base_url}")
     
     def _parse_manzai_script(self, data: Union[str, Dict[str, Any]]) -> List[ScriptItem]:
@@ -541,25 +543,7 @@ class OllamaService:
             available_models = ", ".join(health_check["available_models"]) if health_check["available_models"] else "none"
             raise OllamaServiceError(f"Requested model '{model_name}' is not available on {self.instance_type} instance. Available models: {available_models}")
         
-        prompt = (
-            f"日本の漫才の台本を作成してください。トピックは「{topic}」です。\n"
-            "台本は「ボケ」と「ツッコミ」の2人の会話で構成してください。\n"
-            "以下のJSON形式で出力してください：\n\n"
-            "```json\n"
-            "{\n"
-            '  "script": [\n'
-            '    {"role": "boke", "text": "ボケのセリフ"},\n'
-            '    {"role": "tsukkomi", "text": "ツッコミのセリフ"},\n'
-            "    ...\n"
-            "  ]\n"
-            "}\n"
-            "```\n\n"
-            "・ボケ役は面白いことや間違ったことを言います。\n"
-            "・ツッコミ役はボケに対して突っ込みを入れたり、話を進行します。\n"
-            "・最低10往復以上の会話を作成してください。\n"
-            "・日本語で作成してください。\n"
-            "・必ず指定されたJSON形式で出力してください。"
-        )
+        prompt = self.prompt_loader.load_template("manzai_prompt", topic=topic)
         
         try:
             logger.info(f"Generating manzai script for topic: {topic} with model: {model_name}")

@@ -1,12 +1,18 @@
-from flask import current_app, jsonify, Blueprint
+from flask import current_app, jsonify, Blueprint, request
 from datetime import datetime
 import logging
+from src.services.voicevox_service import VoiceVoxService
+from src.utils.prompt_loader import PromptLoader
+from werkzeug.exceptions import BadRequest, NotFound
+import json
 
 # Blueprintの作成
 bp = Blueprint("api", __name__, url_prefix="/api")
 
 # ロガーの設定
 logger = logging.getLogger(__name__)
+
+prompt_loader = PromptLoader()
 
 @bp.route("/health", methods=["GET"])
 def health_check():
@@ -82,3 +88,68 @@ def detailed_status():
             "error": str(e),
             "timestamp": datetime.now().isoformat()
         }), 500 
+
+@bp.route('/prompts', methods=['GET'])
+def get_prompts():
+    """プロンプト一覧を取得"""
+    try:
+        prompts = prompt_loader.get_all_prompts()
+        return jsonify(prompts), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@bp.route('/prompts/<prompt_id>', methods=['GET'])
+def get_prompt_by_id(prompt_id):
+    """特定のプロンプトを取得"""
+    try:
+        prompt = prompt_loader.get_prompt_by_id(prompt_id)
+        if not prompt:
+            return jsonify({"error": "Prompt not found"}), 404
+        return jsonify(prompt), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@bp.route('/prompts', methods=['POST'])
+def create_prompt():
+    """新しいプロンプトを作成"""
+    try:
+        data = request.get_json()
+        if not data or not all(key in data for key in ['name', 'description', 'template']):
+            return jsonify({"error": "Invalid request data"}), 400
+        
+        new_prompt = prompt_loader.create_prompt(data)
+        return jsonify(new_prompt), 201
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@bp.route('/models/register', methods=['POST'])
+def register_model():
+    """新しいモデルを登録"""
+    try:
+        if 'model_file' not in request.files or 'thumbnail' not in request.files:
+            return jsonify({"error": "Missing required files"}), 400
+
+        model_file = request.files['model_file']
+        thumbnail = request.files['thumbnail']
+        
+        if not model_file.filename.endswith('.zip'):
+            return jsonify({"error": "Invalid model file format"}), 400
+
+        # TODO: Implement model registration logic
+        return jsonify({"message": "Model registered successfully"}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@bp.route('/synthesize', methods=['POST'])
+def synthesize():
+    """台本を音声合成"""
+    try:
+        data = request.get_json()
+        if not data or 'script' not in data:
+            return jsonify({"error": "Invalid request data"}), 400
+
+        voicevox_service = VoiceVoxService()
+        result = voicevox_service.synthesize_script(data['script'])
+        return jsonify(result), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500 
