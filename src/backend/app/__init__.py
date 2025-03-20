@@ -3,11 +3,11 @@ ManzAI Studioのメインアプリケーションモジュール
 """
 import os
 import logging
-from typing import Dict, Any, cast
+from typing import Dict, Any, cast, Optional
 from flask import Flask, Response, jsonify
 from flask_cors import CORS
 
-from src.backend.app.config import Config
+from src.backend.app.config import Config, get_config
 from src.backend.app.services.ollama_service import OllamaService
 from src.backend.app.services.voicevox_service import VoiceVoxService
 from src.backend.app.utils.audio_manager import AudioManager
@@ -31,21 +31,34 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-def create_app():
-    """アプリケーションファクトリ関数"""
+def create_app(config: Optional[Config] = None) -> Flask:
+    """アプリケーションファクトリ関数
+    
+    Args:
+        config: 設定オブジェクト（オプション）
+        
+    Returns:
+        Flask: 設定済みのFlaskアプリケーション
+    """
     app = Flask(__name__)
     CORS(app)
 
-    # 開発モードの設定
-    app.config['DEVELOPMENT'] = development_mode
-    app.config['TESTING'] = testing_mode
-
     # 設定の読み込み
-    app.config.from_object('src.backend.app.config.Config')
+    if config is None:
+        config = get_config()
+    
+    # 設定の適用
+    app.config.update(
+        DEVELOPMENT=development_mode,
+        TESTING=testing_mode or config.TESTING,
+        VOICEVOX_URL=config.VOICEVOX_URL,
+        OLLAMA_URL=config.OLLAMA_URL,
+        OLLAMA_MODEL=config.OLLAMA_MODEL
+    )
 
     # サービスの初期化
-    app.ollama_service = OllamaService()
-    app.voicevox_service = VoiceVoxService()
+    app.ollama_service = OllamaService(base_url=config.OLLAMA_URL)
+    app.voicevox_service = VoiceVoxService(base_url=config.VOICEVOX_URL)
     app.audio_manager = AudioManager()
 
     # ブループリントの登録

@@ -1,6 +1,7 @@
 import pytest
 import json
-from src.app import create_app
+from src.backend.app import create_app
+from werkzeug.exceptions import BadRequest
 
 # テスト用アプリケーションインスタンスを作成
 app = create_app()
@@ -62,4 +63,25 @@ def test_generate_endpoint_with_excessive_payload(client):
     else:
         assert response.status_code == 200
         data = json.loads(response.data)
-        assert 'script' in data 
+        assert 'script' in data
+
+def test_invalid_json(client):
+    """Test that invalid JSON returns a 400 error."""
+    response = client.post('/api/generate-script', data='invalid json')
+    assert response.status_code == 400
+    assert b'Request must be JSON' in response.data
+
+def test_missing_required_fields(client):
+    """Test that missing required fields returns a 400 error."""
+    response = client.post('/api/generate-script', json={})
+    assert response.status_code == 400
+    assert b'Invalid request data' in response.data
+
+def test_invalid_field_types(client):
+    """Test that invalid field types returns a 400 error."""
+    response = client.post('/api/generate-script', json={
+        'topic': 123,  # should be string
+        'model': ['invalid'],  # should be string
+    })
+    assert response.status_code == 400
+    assert b'Invalid request data' in response.data 

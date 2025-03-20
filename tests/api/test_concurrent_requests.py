@@ -6,8 +6,9 @@ import threading
 import time
 import json
 from flask import Flask
-from src.app import create_app
+from src.backend.app import create_app
 from tests.utils.test_helpers import init_testing_mode
+import concurrent.futures
 
 @pytest.fixture(scope="module", autouse=True)
 def setup_environment():
@@ -128,4 +129,23 @@ def test_concurrent_request_isolation():
         elif topic == "宇宙旅行":
             # 宇宙に関連する単語が含まれているか確認
             script_text = " ".join([line.get('text', '') for line in response['script']])
-            assert any(word in script_text for word in ["宇宙", "星", "ロケット", "惑星", "スペース"]) 
+            assert any(word in script_text for word in ["宇宙", "星", "ロケット", "惑星", "スペース"])
+
+def make_request(client):
+    """Make a test request to the API."""
+    response = client.post('/api/generate-script', json={
+        'topic': 'テスト',
+        'model': 'gemma3:4b'
+    })
+    return response.status_code
+
+def test_concurrent_requests(client):
+    """Test handling of concurrent requests."""
+    num_requests = 5
+    with concurrent.futures.ThreadPoolExecutor(max_workers=num_requests) as executor:
+        futures = [executor.submit(make_request, client) for _ in range(num_requests)]
+        results = [f.result() for f in futures]
+    
+    # すべてのリクエストが成功（200）または適切なエラーコード（429）を返すことを確認
+    for status_code in results:
+        assert status_code in [200, 429] 

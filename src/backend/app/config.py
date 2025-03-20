@@ -64,4 +64,7 @@ def get_config():
         return DevelopmentConfig()
 
 
-config = get_config() 
+config = get_config()
+
+# 後方互換性のために BaseConfig を Config としてエクスポート
+Config = BaseConfig 

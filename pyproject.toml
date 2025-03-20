@@ -28,7 +28,7 @@ types-flask = "^1.1.6"
 types-flask-cors = "^4.0.0.20240106"
 
 [tool.poetry.scripts]
-start = "src.app:run"
+start = "src.backend.app:app.run"
 test = "pytest:main"
 coverage = "pytest:main --cov=src --cov-report=term-missing"
 lint = "flake8:main"

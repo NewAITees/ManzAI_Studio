@@ -2,8 +2,9 @@
 
 import os
 import pytest
+import json
 from flask import Flask
-from src.app import create_app
+from src.backend.app import create_app
 from tests.utils.test_helpers import init_testing_mode
 
 @pytest.fixture(scope="module", autouse=True)
@@ -21,17 +22,33 @@ def app():
     app.config["TESTING"] = True
     return app
 
-def test_generate_endpoint_success():
-    """トピックが提供された場合にAPIが正常に機能することを確認"""
-    with app.test_client() as client:
-        response = client.post('/api/generate', 
-                            json={'topic': 'テスト'},
-                            content_type='application/json')
-    
-        assert response.status_code == 200
-        json_data = response.get_json()
-        assert 'script' in json_data
-        assert len(json_data['script']) > 0
+def test_generate_script_success(client):
+    """Test successful script generation."""
+    response = client.post('/api/generate-script', json={
+        'topic': 'テスト',
+        'model': 'gemma3:4b'
+    })
+    assert response.status_code == 200
+    data = json.loads(response.data)
+    assert 'script' in data
+    assert isinstance(data['script'], list)
+    assert len(data['script']) > 0
+
+def test_generate_script_with_options(client):
+    """Test script generation with additional options."""
+    response = client.post('/api/generate-script', json={
+        'topic': 'テスト',
+        'model': 'gemma3:4b',
+        'options': {
+            'temperature': 0.7,
+            'top_p': 0.9
+        }
+    })
+    assert response.status_code == 200
+    data = json.loads(response.data)
+    assert 'script' in data
+    assert isinstance(data['script'], list)
+    assert len(data['script']) > 0
 
 def test_generate_endpoint_with_missing_topic():
     """トピックが不足した場合にAPIが400エラーを返すことを確認"""

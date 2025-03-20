@@ -1,23 +1,31 @@
+"""Test configuration for the backend application."""
 import pytest
-from src.app import create_app
+from typing import Generator
+from flask import Flask
+
+from src.backend.app import create_app
+from src.backend.app.config import TestConfig
 from src.services.audio_manager import AudioManager
 from src.services.voicevox_service import VoiceVoxService
 from src.utils.prompt_loader import PromptLoader
 from unittest.mock import MagicMock
 
 @pytest.fixture
-def app():
+def app() -> Generator[Flask, None, None]:
     """Create and configure a new app instance for each test."""
-    app = create_app()
-    app.config.update({
-        'TESTING': True,
-    })
-    return app
+    test_config = TestConfig()
+    app = create_app(test_config)
+    yield app
 
 @pytest.fixture
 def client(app):
     """A test client for the app."""
     return app.test_client()
+
+@pytest.fixture
+def runner(app):
+    """A test runner for the app's Click commands."""
+    return app.test_cli_runner()
 
 @pytest.fixture
 def mock_voicevox_service():

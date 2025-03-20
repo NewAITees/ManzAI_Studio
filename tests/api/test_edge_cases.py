@@ -1,6 +1,6 @@
 import pytest
 from flask import json
-from src.app import create_app
+from src.backend.app import create_app
 
 # テスト用アプリケーションインスタンスを作成
 app = create_app()
@@ -42,4 +42,32 @@ def test_generate_endpoint_with_emoji(client):
     assert response.status_code == 200
     data = json.loads(response.data)
     assert 'script' in data
-    assert len(data['script']) > 0 
+    assert len(data['script']) > 0
+
+def test_empty_topic(client):
+    """Test that empty topic returns an error."""
+    response = client.post('/api/generate-script', json={
+        'topic': '',
+        'model': 'gemma3:4b'
+    })
+    assert response.status_code == 400
+    assert b'Invalid request data' in response.data
+
+def test_very_long_topic(client):
+    """Test handling of very long topic."""
+    long_topic = 'a' * 1000  # 1000文字の文字列
+    response = client.post('/api/generate-script', json={
+        'topic': long_topic,
+        'model': 'gemma3:4b'
+    })
+    assert response.status_code == 400
+    assert b'Topic too long' in response.data
+
+def test_special_characters(client):
+    """Test handling of special characters in topic."""
+    response = client.post('/api/generate-script', json={
+        'topic': '!@#$%^&*()',
+        'model': 'gemma3:4b'
+    })
+    assert response.status_code == 400
+    assert b'Invalid characters in topic' in response.data 

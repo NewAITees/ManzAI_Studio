@@ -40,7 +40,7 @@ pyenv local 3.10.13  # プロジェクトのPythonバージョンを設定
 curl -fsSL https://ollama.ai/install.sh | sh
 
 # 必要なモデルのダウンロード
-ollama pull phi
+ollama pull gemma3:4b
 ```
 
 #### VoiceVoxのインストール
@@ -62,7 +62,7 @@ npm install
 
 ```bash
 # バックエンドサーバーの起動
-poetry run python run.py
+poetry run start
 
 # 別のターミナルでフロントエンドの開発サーバーを起動
 cd frontend
@@ -73,21 +73,27 @@ npm run dev
 
 ```
 manzai_studio/
-├── backend/
-│   ├── app/
-│   │   ├── __init__.py
-│   │   ├── routes/
-│   │   ├── models/
-│   │   └── services/
-│   ├── tests/
-│   └── config.py
+├── src/
+│   ├── backend/
+│   │   ├── app/
+│   │   │   ├── __init__.py        # アプリケーションファクトリ
+│   │   │   ├── config.py          # 設定
+│   │   │   ├── models/            # データモデル
+│   │   │   ├── routes/            # APIルート
+│   │   │   ├── services/          # サービス層
+│   │   │   ├── templates/         # プロンプトテンプレート
+│   │   │   └── utils/             # ユーティリティ
+│   │   └── __init__.py
+│   ├── app.py                     # 後方互換性用エントリーポイント
+│   └── __init__.py
 ├── frontend/
 │   ├── src/
 │   ├── public/
 │   └── package.json
-├── models/
-│   ├── live2d/
-│   └── ollama/
+├── tests/
+│   ├── api/                       # APIテスト
+│   ├── services/                  # サービステスト
+│   └── conftest.py
 ├── pyproject.toml
 ├── poetry.lock
 └── README.md
