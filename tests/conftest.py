@@ -5,9 +5,9 @@ from flask import Flask
 
 from src.backend.app import create_app
 from src.backend.app.config import TestConfig
-from src.services.audio_manager import AudioManager
-from src.services.voicevox_service import VoiceVoxService
-from src.utils.prompt_loader import PromptLoader
+from src.backend.app.services.voicevox_service import VoiceVoxService
+from src.backend.app.services.audio_manager import AudioManager
+from src.backend.app.utils.prompt_loader import PromptLoader
 from unittest.mock import MagicMock
 
 @pytest.fixture
@@ -30,17 +30,32 @@ def runner(app):
 @pytest.fixture
 def mock_voicevox_service():
     """Mock VoiceVox service for testing."""
-    return MagicMock(spec=VoiceVoxService)
+    mock = MagicMock()
+    mock.synthesize.return_value = "test_audio_file.wav"
+    mock.list_speakers.return_value = [
+        {"name": "四国めたん", "styles": [{"id": 2, "name": "ノーマル"}]},
+        {"name": "ずんだもん", "styles": [{"id": 3, "name": "ノーマル"}]}
+    ]
+    return mock
 
 @pytest.fixture
 def mock_audio_manager():
     """Mock audio manager for testing."""
-    return MagicMock(spec=AudioManager)
+    mock = MagicMock()
+    mock.get_audio_file_path.return_value = "/path/to/audio.wav"
+    mock.generate_filename.return_value = "test_audio_file.wav"
+    mock.save_audio.return_value = "test_audio_file.wav"
+    mock.get_audio_url.return_value = "/audio/test_audio_file.wav"
+    return mock
 
 @pytest.fixture
 def mock_prompt_loader():
     """Mock prompt loader for testing."""
-    return MagicMock(spec=PromptLoader)
+    mock = MagicMock()
+    mock.get_all_prompts.return_value = [
+        {"id": "1", "name": "基本プロンプト", "description": "テスト用", "template": "テンプレート"}
+    ]
+    return mock
 
 @pytest.fixture
 def mock_services(mock_voicevox_service, mock_audio_manager):

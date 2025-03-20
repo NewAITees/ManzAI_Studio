@@ -10,7 +10,7 @@ from unittest.mock import patch, MagicMock
 from typing import Any, Dict
 
 # アプリケーションのインポート
-from src import create_app
+from src.backend.app import create_app
 
 def init_testing_mode() -> None:
     """テストモードの初期化を行う"""

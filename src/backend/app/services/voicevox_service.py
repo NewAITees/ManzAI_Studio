@@ -7,8 +7,8 @@ import json
 import requests
 from requests.exceptions import RequestException, ConnectionError, Timeout
 
-from src.backend.app.models.audio import AudioSynthesisResult, SpeechTimingData
-from src.backend.app.models.service import VoiceVoxSpeaker
+from src.models.audio import AudioSynthesisResult, SpeechTimingData
+from src.models.service import VoiceVoxSpeaker
 
 logger = logging.getLogger(__name__)
 

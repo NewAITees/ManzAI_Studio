@@ -148,8 +148,23 @@ def synthesize():
         if not data or 'script' not in data:
             return jsonify({"error": "Invalid request data"}), 400
 
-        voicevox_service = VoiceVoxService()
-        result = voicevox_service.synthesize_script(data['script'])
-        return jsonify(result), 200
+        voicevox_service = current_app.voicevox_service
+        audio_manager = current_app.audio_manager
+        
+        # 各台詞を音声合成
+        audio_data = []
+        for line in data['script']:
+            audio_file = voicevox_service.synthesize(
+                text=line['text'],
+                speaker_id=line['speaker_id']
+            )
+            audio_data.append({
+                'speaker': line['speaker'],
+                'text': line['text'],
+                'audio_file': audio_file
+            })
+        
+        return jsonify({'audio_data': audio_data}), 200
     except Exception as e:
+        logger.exception(f"Error in synthesize endpoint: {e}")
         return jsonify({"error": str(e)}), 500 

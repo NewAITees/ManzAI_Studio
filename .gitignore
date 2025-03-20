@@ -13,10 +13,10 @@ dist/
 
 # Project specific
 src/backend/models/
+src/backend/app/templates/prompts/
 
 # Version control
 .git/
-
 frontend/package.json
 frontend/package-lock.json
 src/frontend/node_modules/
