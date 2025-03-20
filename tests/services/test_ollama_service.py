@@ -1,8 +1,8 @@
 import pytest
 from unittest.mock import patch, MagicMock
 import re
-from src.services.ollama_service import OllamaService, OllamaServiceError
-from src.utils.prompt_loader import PromptLoader
+from src.backend.app.services.ollama_service import OllamaService, OllamaServiceError
+from src.backend.app.utils.prompt_loader import PromptLoader
 import requests
 
 @pytest.fixture

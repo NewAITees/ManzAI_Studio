@@ -7,7 +7,7 @@ import unittest
 import tempfile
 from unittest.mock import Mock, patch
 
-from app.utils.validators import (
+from src.backend.app.utils.validators import (
     validate_model_data,
     validate_prompt_data,
     validate_script_params,

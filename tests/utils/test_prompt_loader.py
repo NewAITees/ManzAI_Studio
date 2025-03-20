@@ -1,6 +1,6 @@
 import pytest
 import os
-from src.utils.prompt_loader import PromptLoader, PromptTemplateNotFoundError
+from src.backend.app.utils.prompt_loader import PromptLoader, PromptTemplateNotFoundError
 
 @pytest.fixture
 def prompt_loader(tmp_path):

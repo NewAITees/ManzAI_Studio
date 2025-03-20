@@ -11,9 +11,9 @@ import requests
 from requests.exceptions import RequestException, ConnectionError, Timeout
 from urllib.parse import urljoin
 
-from src.models.script import ManzaiScript, ScriptLine, Role
-from src.models.service import OllamaModel
-from src.utils.prompt_loader import PromptLoader
+from src.backend.app.models.script import ManzaiScript, ScriptLine, Role
+from src.backend.app.models.service import OllamaModel
+from src.backend.app.utils.prompt_loader import PromptLoader
 
 # ロガーの設定
 logger = logging.getLogger(__name__)

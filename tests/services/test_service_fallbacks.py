@@ -1,8 +1,8 @@
 import pytest
 import requests
 from unittest.mock import patch, MagicMock
-from src.services.ollama_service import OllamaService, OllamaServiceError
-from src.services.voicevox_service import VoiceVoxService, VoiceVoxServiceError
+from src.backend.app.services.ollama_service import OllamaService, OllamaServiceError
+from src.backend.app.services.voicevox_service import VoiceVoxService, VoiceVoxServiceError
 
 @patch('requests.post')
 def test_ollama_service_timeout_handling(mock_post):

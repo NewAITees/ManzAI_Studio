@@ -4,7 +4,7 @@ import logging
 from typing import List, Optional
 from datetime import datetime
 
-from src.models.audio import AudioFile
+from src.backend.app.models.audio import AudioFile
 
 logger = logging.getLogger(__name__)
 
