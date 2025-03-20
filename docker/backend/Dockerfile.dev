@@ -11,13 +11,19 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # Poetryのインストール
-RUN curl -sSL https://install.python-poetry.org | python3 -
+RUN curl -sSL https://install.python-poetry.org | python3 - \
+    && poetry --version
 
 # PATHの設定
 ENV PATH="/root/.local/bin:$PATH"
 
+# プロジェクトファイルをコピー
+COPY pyproject.toml poetry.lock ./
+
 # 仮想環境なしで依存関係をインストール
-RUN poetry config virtualenvs.create false
+RUN poetry config virtualenvs.create false \
+    && poetry install --no-interaction --no-root \
+    && poetry show flask
 
 # ディレクトリ構造を作成
 RUN mkdir -p data/audio
