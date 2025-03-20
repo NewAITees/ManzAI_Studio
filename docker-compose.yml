@@ -1,61 +1,114 @@
 version: '3.8'
 
 services:
+  # Backend service
+  backend:
+    build:
+      context: .
+      dockerfile: docker/backend/Dockerfile
+    volumes:
+      - ./src:/app/src
+      - ./tests:/app/tests
+      - ./pyproject.toml:/app/pyproject.toml
+      - ./poetry.lock:/app/poetry.lock
+      - app_data:/app/data
+    env_file:
+      - .env
+    environment:
+      - FLASK_APP=src.app:create_app
+      - FLASK_ENV=${FLASK_ENV:-production}
+      - FLASK_DEBUG=${FLASK_DEBUG:-0}
+      - VOICEVOX_URL=http://voicevox:50021
+      - OLLAMA_URL=http://ollama:11434
+      - OLLAMA_INSTANCE_TYPE=docker
+      - OLLAMA_MODEL=${OLLAMA_MODEL:-gemma3:4b}
+    ports:
+      - "5000:5000"
+    depends_on:
+      - voicevox
+      - ollama
+    networks:
+      - manzai-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+  # Frontend service
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: ../docker/frontend/Dockerfile
+    volumes:
+      - ./frontend/src:/app/src
+      - ./frontend/public:/app/public
+      - /app/node_modules
+    environment:
+      - REACT_APP_API_URL=http://localhost:5000
+      - NODE_ENV=${NODE_ENV:-production}
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+    networks:
+      - manzai-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+  
+  # VoiceVox service
   voicevox:
     image: voicevox/voicevox_engine:cpu-ubuntu20.04-latest
     ports:
       - "50021:50021"
-    # 一時的にヘルスチェックを無効化
-    # healthcheck:
-    #   test: ["CMD", "curl", "-f", "http://localhost:50021/speakers"]
-    #   interval: 10s
-    #   timeout: 30s
-    #   retries: 3
-    #   start_period: 20s
+    volumes:
+      - voicevox_data:/opt/voicevox_engine
+    networks:
+      - manzai-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:50021/docs"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
 
+  # Ollama service
   ollama:
     image: ollama/ollama:latest
     ports:
       - "11434:11434"
     volumes:
       - ollama_data:/root/.ollama
-    # 一時的にヘルスチェックを無効化
-    # healthcheck:
-    #   test: ["CMD", "sh", "-c", "curl -s http://localhost:11434/api/tags > /dev/null && echo 'OK' || exit 1"]
-    #   interval: 15s
-    #   timeout: 60s
-    #   retries: 3
-    #   start_period: 60s
+    environment:
+      - OLLAMA_MODELS=/root/.ollama/models
+    networks:
+      - manzai-network
+    restart: unless-stopped
     deploy:
       resources:
         limits:
           memory: 8G
         reservations:
           memory: 4G
-    environment:
-      - OLLAMA_MODELS=/root/.ollama/models
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:11434/api/tags"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
 
-  web:
-    build:
-      context: .
-      dockerfile: Dockerfile.dev
-    volumes:
-      - .:/app
-      - poetry_cache:/root/.cache/pypoetry
-    ports:
-      - "5000:5000"
-    environment:
-      - FLASK_APP=src.app:create_app
-      - FLASK_ENV=development
-      - FLASK_DEBUG=1
-      - VOICEVOX_URL=http://voicevox:50021
-      - OLLAMA_URL=http://ollama:11434
-      - OLLAMA_INSTANCE_TYPE=docker
-      - OLLAMA_MODEL=gemma3:4b
-    depends_on:
-      - voicevox
-      - ollama
+networks:
+  manzai-network:
+    driver: bridge
 
 volumes:
+  app_data:
   ollama_data:
-  poetry_cache: 
+  voicevox_data: 

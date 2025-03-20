@@ -1,0 +1,32 @@
+FROM python:3.10-slim
+
+WORKDIR /app
+
+# 開発ツールのインストール
+RUN apt-get update && apt-get install -y \
+    curl \
+    build-essential \
+    gcc \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
+# Poetryのインストール
+RUN curl -sSL https://install.python-poetry.org | python3 -
+
+# PATHの設定
+ENV PATH="/root/.local/bin:$PATH"
+
+# 仮想環境なしで依存関係をインストール
+RUN poetry config virtualenvs.create false
+
+# ディレクトリ構造を作成
+RUN mkdir -p data/audio
+
+# 環境変数の設定
+ENV FLASK_APP=src.app:create_app
+ENV FLASK_ENV=development
+ENV FLASK_DEBUG=1
+ENV PYTHONPATH=/app
+
+# コンテナ起動コマンド
+CMD ["poetry", "run", "flask", "run", "--host=0.0.0.0", "--port=5000"] 
