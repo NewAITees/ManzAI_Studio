@@ -4,11 +4,15 @@ import os
 import pytest
 import json
 from flask import Flask
+from flask.testing import FlaskClient
+from typing import Generator, Dict, Any
+
 from src.backend.app import create_app
+from src.backend.app.config import TestConfig
 from tests.utils.test_helpers import init_testing_mode
 
 @pytest.fixture(scope="module", autouse=True)
-def setup_environment():
+def setup_environment() -> None:
     """テスト環境のセットアップ"""
     # 開発モードを強制的に有効化
     os.environ["FLASK_ENV"] = "development"
@@ -22,7 +26,7 @@ def app():
     app.config["TESTING"] = True
     return app
 
-def test_generate_script_success(client):
+def test_generate_script_success(client: FlaskClient) -> None:
     """Test successful script generation."""
     response = client.post('/api/generate-script', json={
         'topic': 'テスト',
@@ -34,7 +38,7 @@ def test_generate_script_success(client):
     assert isinstance(data['script'], list)
     assert len(data['script']) > 0
 
-def test_generate_script_with_options(client):
+def test_generate_script_with_options(client: FlaskClient) -> None:
     """Test script generation with additional options."""
     response = client.post('/api/generate-script', json={
         'topic': 'テスト',
@@ -50,36 +54,29 @@ def test_generate_script_with_options(client):
     assert isinstance(data['script'], list)
     assert len(data['script']) > 0
 
-def test_generate_endpoint_with_missing_topic():
+def test_generate_endpoint_with_missing_topic(client: FlaskClient) -> None:
     """トピックが不足した場合にAPIが400エラーを返すことを確認"""
-    with app.test_client() as client:
-        response = client.post('/api/generate', json={})
-    
-        assert response.status_code == 400
-        json_data = response.get_json()
-        assert 'error' in json_data
+    response = client.post('/api/generate', json={})
+    assert response.status_code == 400
+    json_data = response.get_json()
+    assert 'error' in json_data
 
-def test_generate_endpoint_with_empty_topic():
+def test_generate_endpoint_with_empty_topic(client: FlaskClient) -> None:
     """空のトピックでAPIが400エラーを返すことを確認"""
-    with app.test_client() as client:
-        response = client.post('/api/generate', json={'topic': ''})
-    
-        assert response.status_code == 400
-        json_data = response.get_json()
-        assert 'error' in json_data
-        # 実際のエラーメッセージはPydanticによって生成される形式に変更
-        assert 'topic' in json_data['error'].lower()
-        assert 'value error' in json_data['error'].lower()
+    response = client.post('/api/generate', json={'topic': ''})
+    assert response.status_code == 400
+    json_data = response.get_json()
+    assert 'error' in json_data
+    # 実際のエラーメッセージはPydanticによって生成される形式に変更
+    assert 'topic' in json_data['error'].lower()
+    assert 'value error' in json_data['error'].lower()
 
-def test_generate_endpoint_with_invalid_content_type():
+def test_generate_endpoint_with_invalid_content_type(client: FlaskClient) -> None:
     """不正なContent-TypeでAPIが415エラーを返すことを確認"""
-    with app.test_client() as client:
-        response = client.post('/api/generate', data='invalid data')
+    response = client.post('/api/generate', data='invalid data')
+    assert response.status_code in [400, 415]
+    json_data = response.get_json()
+    assert 'error' in json_data
     
-        # 現在の実装では415ではなく400を返す可能性があるため、条件を緩和
-        assert response.status_code in [400, 415]
-        json_data = response.get_json()
-        assert 'error' in json_data
-        
-        # 実際のエラーメッセージを確認
-        assert 'json' in json_data['error'].lower() 
+    # 実際のエラーメッセージを確認
+    assert 'json' in json_data['error'].lower() 
