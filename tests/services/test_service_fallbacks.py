@@ -1,65 +1,71 @@
+"""サービスフォールバックのテスト"""
 import pytest
 import requests
 from unittest.mock import patch, MagicMock
 from src.backend.app.services.ollama_service import OllamaService, OllamaServiceError
 from src.backend.app.services.voicevox_service import VoiceVoxService, VoiceVoxServiceError
 
-@patch('requests.post')
-def test_ollama_service_timeout_handling(mock_post):
-    """Ollamaサービスがタイムアウトした場合の適切なエラー処理を確認"""
-    mock_post.side_effect = requests.exceptions.Timeout()
+class TestOllamaServiceFallbacks:
+    """Ollamaサービスのフォールバック機能テスト"""
     
-    service = OllamaService()
-    with pytest.raises(OllamaServiceError) as excinfo:
-        service.generate_manzai_script("テスト")
+    def test_timeout_handling(self):
+        """タイムアウト時のフォールバック処理"""
+        with patch('requests.post', side_effect=requests.exceptions.Timeout):
+            service = OllamaService()
+            
+            with pytest.raises(OllamaServiceError, match="Timeout error occurred"):
+                service.generate_manzai_script("テスト")
+            
+            # フォールバック応答の検証
+            fallback = service.get_fallback_response("テスト")
+            assert isinstance(fallback, list)
+            assert len(fallback) >= 2  # 最低2つの応答があることを確認
+            assert all('role' in entry and 'text' in entry for entry in fallback)
+            assert all(entry['role'] in ['tsukkomi', 'boke'] for entry in fallback)
+            assert all(isinstance(entry['text'], str) and len(entry['text']) > 0 for entry in fallback)
     
-    assert "timeout" in str(excinfo.value).lower()
-    
-    # フォールバック応答を取得して検証
-    fallback = service.get_fallback_response("テスト")
-    assert fallback is not None
-    assert isinstance(fallback, list)
-    assert len(fallback) > 0
-    
-    # 各エントリが正しい構造を持っていることを確認
-    for entry in fallback:
-        assert 'role' in entry
-        assert 'text' in entry
-        assert entry['role'] in ['tsukkomi', 'boke']
+    def test_connection_error_handling(self):
+        """接続エラー時のフォールバック処理"""
+        with patch('requests.post', side_effect=requests.exceptions.ConnectionError):
+            service = OllamaService()
+            
+            with pytest.raises(OllamaServiceError, match="Connection error with Ollama API"):
+                service.generate_manzai_script("テスト")
+            
+            # フォールバック応答の検証
+            fallback = service.get_fallback_response("テスト")
+            assert isinstance(fallback, list)
+            assert len(fallback) >= 2
+            assert all('role' in entry and 'text' in entry for entry in fallback)
 
-@patch('requests.post')
-def test_ollama_service_connection_error_handling(mock_post):
-    """Ollamaサービスの接続エラーを適切に処理することを確認"""
-    mock_post.side_effect = requests.exceptions.ConnectionError()
+class TestVoiceVoxServiceFallbacks:
+    """VoiceVoxサービスのフォールバック機能テスト"""
     
-    service = OllamaService()
-    with pytest.raises(OllamaServiceError) as excinfo:
-        service.generate_manzai_script("テスト")
+    def test_service_unavailable_handling(self):
+        """サービス利用不可時のフォールバック処理"""
+        with patch('requests.post', side_effect=requests.exceptions.HTTPError):
+            service = VoiceVoxService()
+            
+            with pytest.raises(VoiceVoxServiceError, match="HTTP error occurred with VoiceVox API"):
+                service.generate_voice("こんにちは", speaker_id=1)
+            
+            # フォールバック音声の検証
+            fallback_audio = service.get_fallback_audio("こんにちは")
+            assert isinstance(fallback_audio, bytes)
+            assert len(fallback_audio) > 0
+            # 音声データの基本的な検証（WAVファイルのヘッダー）
+            assert fallback_audio.startswith(b'RIFF')
     
-    assert "connection" in str(excinfo.value).lower()
-
-@patch('requests.post')
-def test_voicevox_service_unavailable_handling(mock_post):
-    """VoiceVoxサービスが利用不可の場合の適切なエラー処理を確認"""
-    mock_post.side_effect = requests.exceptions.HTTPError()
-    
-    service = VoiceVoxService()
-    with pytest.raises(VoiceVoxServiceError):
-        service.generate_voice("こんにちは", speaker_id=1)
-    
-    # テキスト読み上げのフォールバックが機能することを確認
-    fallback_audio = service.get_fallback_audio("こんにちは")
-    assert fallback_audio is not None
-    assert isinstance(fallback_audio, bytes)
-    assert len(fallback_audio) > 0
-
-@patch('requests.post')
-def test_voicevox_service_timeout_handling(mock_post):
-    """VoiceVoxサービスがタイムアウトした場合の適切なエラー処理を確認"""
-    mock_post.side_effect = requests.exceptions.Timeout()
-    
-    service = VoiceVoxService()
-    with pytest.raises(VoiceVoxServiceError) as excinfo:
-        service.generate_voice("こんにちは", speaker_id=1)
-    
-    assert "timeout" in str(excinfo.value).lower() 
+    def test_timeout_handling(self):
+        """タイムアウト時のフォールバック処理"""
+        with patch('requests.post', side_effect=requests.exceptions.Timeout):
+            service = VoiceVoxService()
+            
+            with pytest.raises(VoiceVoxServiceError, match="Timeout error occurred while communicating with VoiceVox API"):
+                service.generate_voice("こんにちは", speaker_id=1)
+            
+            # フォールバック音声の検証
+            fallback_audio = service.get_fallback_audio("こんにちは")
+            assert isinstance(fallback_audio, bytes)
+            assert len(fallback_audio) > 0
+            assert fallback_audio.startswith(b'RIFF') 

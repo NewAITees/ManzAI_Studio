@@ -22,7 +22,8 @@ frontend/package-lock.json
 src/frontend/node_modules/
 
 frontend/node_modules/
-
+.coverage
+.coverage(1)
 
 frontend/public/live2d/models/
 docs/dev_plan
