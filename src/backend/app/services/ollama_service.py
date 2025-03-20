@@ -422,19 +422,32 @@ class OllamaService:
         self.prompt_loader = PromptLoader()
         logger.info(f"OllamaService initialized with {detected_type} instance at {base_url}")
     
-    def _parse_manzai_script(self, data: Union[str, Dict[str, Any]]) -> List[ScriptItem]:
-        """漫才スクリプトを解析してScriptItemのリストを返す
+    def _parse_manzai_script(self, data: Union[str, Dict[str, Any]]) -> List[ScriptLine]:
+        """漫才スクリプトを解析してScriptLineのリストを返す
 
         Args:
             data: 解析対象のデータ（文字列またはdict）
 
         Returns:
-            ScriptItemのリスト
+            ScriptLineのリスト
         """
         if isinstance(data, dict):
             if "script" not in data:
                 raise OllamaServiceError("Script not found in response")
-            text = data["script"]
+            script_data = data["script"]
+            if isinstance(script_data, list):
+                script_items = []
+                for item in script_data:
+                    if not isinstance(item, dict) or "speaker" not in item or "text" not in item:
+                        continue
+                    speaker = item["speaker"].strip()
+                    text = item["text"].strip()
+                    if not speaker or not text:
+                        continue
+                    role = Role.TSUKKOMI if speaker == "A" else Role.BOKE
+                    script_items.append(ScriptLine(role=role, text=text))
+                return script_items
+            text = script_data
         else:
             text = data
 
@@ -462,13 +475,8 @@ class OllamaService:
                 continue
             
             # 話者に応じてロールを割り当て
-            role = "tsukkomi" if speaker == "A" else "boke"
-            
-            script_items.append(ScriptItem(
-                speaker=speaker,
-                text=content,
-                role=role
-            ))
+            role = Role.TSUKKOMI if speaker == "A" else Role.BOKE
+            script_items.append(ScriptLine(role=role, text=content))
         
         return script_items
     
@@ -517,7 +525,7 @@ class OllamaService:
         
         return result
     
-    def generate_manzai_script(self, topic: str, model_name: str = "gemma3:4b") -> List[ScriptItem]:
+    def generate_manzai_script(self, topic: str, model_name: str = "gemma3:4b") -> List[ScriptLine]:
         """指定されたトピックの漫才台本を生成
         
         Args:
@@ -581,24 +589,22 @@ class OllamaService:
         """
         return self.client.get_detailed_status()
 
-    def get_fallback_response(self, topic: str) -> List[ScriptItem]:
+    def get_fallback_response(self, topic: str) -> List[ScriptLine]:
         """フォールバック用の応答を生成
 
         Args:
             topic: 話題
 
         Returns:
-            ScriptItemのリスト
+            ScriptLineのリスト
         """
         return [
-            ScriptItem(
-                speaker="A",
-                text=f"申し訳ありません。{topic}についての漫才を生成できませんでした。",
-                role="tsukkomi"
+            ScriptLine(
+                role=Role.TSUKKOMI,
+                text=f"申し訳ありません。{topic}についての漫才を生成できませんでした。"
             ),
-            ScriptItem(
-                speaker="B",
-                text="また後で試してみましょう。",
-                role="boke"
+            ScriptLine(
+                role=Role.BOKE,
+                text="また後で試してみましょう。"
             )
         ] 
