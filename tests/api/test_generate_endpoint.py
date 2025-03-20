@@ -3,28 +3,16 @@
 import os
 import pytest
 import json
-from flask import Flask
 from flask.testing import FlaskClient
 from typing import Generator, Dict, Any
 
-from src.backend.app import create_app
-from src.backend.app.config import TestConfig
 from tests.utils.test_helpers import init_testing_mode
 
 @pytest.fixture(scope="module", autouse=True)
 def setup_environment() -> None:
     """テスト環境のセットアップ"""
-    # 開発モードを強制的に有効化
     os.environ["FLASK_ENV"] = "development"
-    # テストモードを有効化
     init_testing_mode()
-
-@pytest.fixture
-def app():
-    """テスト用アプリケーションを作成"""
-    app = create_app()
-    app.config["TESTING"] = True
-    return app
 
 def test_generate_script_success(client: FlaskClient) -> None:
     """Test successful script generation."""
@@ -67,7 +55,6 @@ def test_generate_endpoint_with_empty_topic(client: FlaskClient) -> None:
     assert response.status_code == 400
     json_data = response.get_json()
     assert 'error' in json_data
-    # 実際のエラーメッセージはPydanticによって生成される形式に変更
     assert 'topic' in json_data['error'].lower()
     assert 'value error' in json_data['error'].lower()
 
@@ -77,6 +64,4 @@ def test_generate_endpoint_with_invalid_content_type(client: FlaskClient) -> Non
     assert response.status_code in [400, 415]
     json_data = response.get_json()
     assert 'error' in json_data
-    
-    # 実際のエラーメッセージを確認
     assert 'json' in json_data['error'].lower() 

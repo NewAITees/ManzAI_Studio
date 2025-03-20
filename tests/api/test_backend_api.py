@@ -4,11 +4,11 @@ from unittest.mock import patch, MagicMock
 import os
 import io
 from flask import Flask
+from flask.testing import FlaskClient
 
-from src.backend.app import create_app
-from src.services.ollama_service import OllamaService
-from src.services.voicevox_service import VoiceVoxService
-from src.services.audio_manager import AudioManager
+from src.backend.app.services.ollama_service import OllamaService
+from src.backend.app.services.voicevox_service import VoiceVoxService
+from src.backend.app.services.audio_manager import AudioManager
 
 
 @pytest.fixture
@@ -25,7 +25,7 @@ def client(app):
     return app.test_client()
 
 
-def test_health_endpoint(client):
+def test_health_endpoint(client: FlaskClient) -> None:
     """Test health endpoint returns healthy status."""
     response = client.get("/api/health")
     
@@ -33,7 +33,7 @@ def test_health_endpoint(client):
     assert response.json["status"] == "healthy"
 
 
-def test_generate_endpoint_valid_topic(client):
+def test_generate_endpoint_valid_topic(client: FlaskClient) -> None:
     """Test generate endpoint with valid topic returns proper response."""
     mock_script_data = {
         "script": [
@@ -59,7 +59,7 @@ def test_generate_endpoint_valid_topic(client):
                 assert len(response.json["audio_data"]) == 2
 
 
-def test_generate_endpoint_missing_topic(client):
+def test_generate_endpoint_missing_topic(client: FlaskClient) -> None:
     """Test generate endpoint with missing topic returns 400 error."""
     response = client.post("/api/generate", json={})
     
@@ -68,7 +68,7 @@ def test_generate_endpoint_missing_topic(client):
     assert "No topic provided" in response.json["error"]
 
 
-def test_generate_endpoint_empty_topic(client):
+def test_generate_endpoint_empty_topic(client: FlaskClient) -> None:
     """Test generate endpoint with empty topic returns 400 error."""
     response = client.post("/api/generate", json={"topic": ""})
     
@@ -77,7 +77,7 @@ def test_generate_endpoint_empty_topic(client):
     assert "Topic cannot be empty" in response.json["error"]
 
 
-def test_generate_endpoint_invalid_content_type(client):
+def test_generate_endpoint_invalid_content_type(client: FlaskClient) -> None:
     """Test generate endpoint with invalid content type returns 415 error."""
     response = client.post("/api/generate", data="invalid data")
     
@@ -86,7 +86,7 @@ def test_generate_endpoint_invalid_content_type(client):
     assert "Content-Type" in response.json["error"]
 
 
-def test_audio_endpoint_file_found(client):
+def test_audio_endpoint_file_found(client: FlaskClient) -> None:
     """Test audio endpoint with existing file returns audio file."""
     mock_audio_data = b"test_audio_data"
     filename = "test_audio.wav"
@@ -101,7 +101,7 @@ def test_audio_endpoint_file_found(client):
             assert mock_send_file.called
             
 
-def test_audio_endpoint_file_not_found(client):
+def test_audio_endpoint_file_not_found(client: FlaskClient) -> None:
     """Test audio endpoint with non-existing file returns 404 error."""
     filename = "nonexistent.wav"
     

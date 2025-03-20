@@ -1,17 +1,20 @@
+"""VoiceVoxサービスのテスト"""
 import pytest
 from unittest.mock import patch, MagicMock, mock_open
 import os
 import json
 import requests
-from src.services.voicevox_service import VoiceVoxService, VoiceVoxServiceError
-from src.models.audio import AudioSynthesisResult, SpeechTimingData
+from typing import Generator, Dict, Any, cast
+
+from src.backend.app.services.voicevox_service import VoiceVoxService, VoiceVoxServiceError
+from src.backend.app.models.audio import AudioSynthesisResult, SpeechTimingData
 
 @pytest.fixture
-def voicevox_service():
+def voicevox_service() -> VoiceVoxService:
     """テスト用のVoiceVoxServiceインスタンスを作成"""
     return VoiceVoxService()
 
-def test_generate_voice_returns_audio_data(voicevox_service):
+def test_generate_voice_returns_audio_data(voicevox_service: VoiceVoxService) -> None:
     """VoiceVoxサービスが有効な音声データを返すことを確認"""
     mock_audio_data = b'test audio data'
     mock_query_response = {
@@ -56,7 +59,7 @@ def test_generate_voice_returns_audio_data(voicevox_service):
         assert len(audio_data) > 0
         assert audio_data == mock_audio_data
 
-def test_get_timing_data_returns_valid_structure(voicevox_service):
+def test_get_timing_data_returns_valid_structure(voicevox_service: VoiceVoxService) -> None:
     """VoiceVoxサービスが有効なタイミングデータを返すことを確認"""
     mock_response = {
         'accent_phrases': [
@@ -106,7 +109,7 @@ def test_get_timing_data_returns_valid_structure(voicevox_service):
             assert isinstance(mora['consonant_length'], float)
             assert isinstance(mora['vowel_length'], float)
 
-def test_generate_voice_handles_connection_error(voicevox_service):
+def test_generate_voice_handles_connection_error(voicevox_service: VoiceVoxService) -> None:
     """VoiceVoxサービスが接続エラーを適切に処理することを確認"""
     with patch('requests.post') as mock_post:
         mock_post.side_effect = requests.exceptions.ConnectionError()
@@ -116,7 +119,7 @@ def test_generate_voice_handles_connection_error(voicevox_service):
         
         assert "connection error with voicevox api" in str(exc_info.value).lower()
 
-def test_generate_voice_handles_invalid_response(voicevox_service):
+def test_generate_voice_handles_invalid_response(voicevox_service: VoiceVoxService) -> None:
     """VoiceVoxサービスが不正なレスポンスを適切に処理することを確認"""
     with patch('requests.post') as mock_post:
         mock_post.return_value.status_code = 500
@@ -127,21 +130,21 @@ def test_generate_voice_handles_invalid_response(voicevox_service):
         
         assert "voicevox api returned error status: 500" in str(exc_info.value).lower()
 
-def test_generate_voice_handles_empty_text(voicevox_service):
+def test_generate_voice_handles_empty_text(voicevox_service: VoiceVoxService) -> None:
     """VoiceVoxサービスが空のテキストを適切に処理することを確認"""
     with pytest.raises(ValueError) as exc_info:
         voicevox_service.generate_voice("", speaker_id=1)
     
     assert "text cannot be empty" in str(exc_info.value).lower()
 
-def test_generate_voice_handles_invalid_speaker_id(voicevox_service):
+def test_generate_voice_handles_invalid_speaker_id(voicevox_service: VoiceVoxService) -> None:
     """VoiceVoxサービスが不正なスピーカーIDを適切に処理することを確認"""
     with pytest.raises(ValueError) as exc_info:
         voicevox_service.generate_voice("テスト", speaker_id=-1)
     
     assert "invalid speaker id" in str(exc_info.value).lower()
 
-def test_generate_voice_with_valid_params(voicevox_service):
+def test_generate_voice_with_valid_params(voicevox_service: VoiceVoxService) -> None:
     """VoiceVoxServiceが有効なパラメータで音声を生成することを確認"""
     mock_audio_data = b'test audio data'
     mock_query_response = {'query': 'data'}
@@ -162,14 +165,7 @@ def test_generate_voice_with_valid_params(voicevox_service):
         assert result == mock_audio_data
         assert mock_post.call_count == 2
 
-def test_generate_voice_empty_text(voicevox_service):
-    """VoiceVoxServiceが空のテキストを適切に処理することを確認"""
-    with pytest.raises(ValueError) as exc_info:
-        voicevox_service.generate_voice("", 1)
-    
-    assert "text cannot be empty" in str(exc_info.value)
-
-def test_get_timing_data_with_valid_params(voicevox_service):
+def test_get_timing_data_with_valid_params(voicevox_service: VoiceVoxService) -> None:
     """VoiceVoxServiceが有効なパラメータでタイミングデータを取得することを確認"""
     mock_response = {
         'accent_phrases': [
@@ -203,17 +199,14 @@ def test_get_timing_data_with_valid_params(voicevox_service):
         mock_response_obj.json.return_value = mock_response
         mock_post.return_value = mock_response_obj
         
-        # メソッドを呼び出し
         result = voicevox_service.get_timing_data("こんにちは", speaker_id=1)
         
-        # テスト
         assert isinstance(result, dict)
         assert 'accent_phrases' in result
         assert len(result['accent_phrases']) == 1
         assert 'moras' in result['accent_phrases'][0]
         assert len(result['accent_phrases'][0]['moras']) == 5
         
-        # モーラ情報を確認
         for mora in result['accent_phrases'][0]['moras']:
             assert 'text' in mora
             assert 'consonant' in mora
@@ -225,7 +218,6 @@ def test_get_timing_data_with_valid_params(voicevox_service):
             assert isinstance(mora['vowel_length'], float)
             assert isinstance(mora['pitch'], float)
         
-        # リクエスト内容を確認
         mock_post.assert_called_once()
         assert "/audio_query" in str(mock_post.call_args)
 

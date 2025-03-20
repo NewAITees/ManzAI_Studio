@@ -1,21 +1,24 @@
+"""AudioManagerのテスト"""
 import pytest
 import os
 import tempfile
-from src.services.audio_manager import AudioManager
+from typing import Generator, Any
+
+from src.backend.app.services.audio_manager import AudioManager
 
 @pytest.fixture
-def audio_manager():
+def audio_manager() -> Generator[AudioManager, None, None]:
     """テスト用のAudioManagerインスタンスを作成"""
     with tempfile.TemporaryDirectory() as temp_dir:
         manager = AudioManager(audio_dir=temp_dir)
         yield manager
 
 @pytest.fixture
-def sample_audio_data():
+def sample_audio_data() -> bytes:
     """テスト用の音声データを作成"""
     return b'test audio data'
 
-def test_save_audio_file(audio_manager, sample_audio_data):
+def test_save_audio_file(audio_manager: AudioManager, sample_audio_data: bytes) -> None:
     """音声ファイルが正しく保存されることを確認"""
     file_path = audio_manager.save_audio(sample_audio_data, "test_audio")
     
@@ -24,7 +27,7 @@ def test_save_audio_file(audio_manager, sample_audio_data):
         saved_data = f.read()
     assert saved_data == sample_audio_data
 
-def test_get_audio_file(audio_manager, sample_audio_data):
+def test_get_audio_file(audio_manager: AudioManager, sample_audio_data: bytes) -> None:
     """音声ファイルが正しく取得できることを確認"""
     file_path = audio_manager.save_audio(sample_audio_data, "test_audio")
     # 実際のファイル名を使用する
@@ -33,28 +36,28 @@ def test_get_audio_file(audio_manager, sample_audio_data):
     retrieved_data = audio_manager.get_audio(actual_filename)
     assert retrieved_data == sample_audio_data
 
-def test_get_audio_file_not_found(audio_manager):
+def test_get_audio_file_not_found(audio_manager: AudioManager) -> None:
     """存在しない音声ファイルを要求した場合にエラーを返すことを確認"""
     with pytest.raises(FileNotFoundError) as exc_info:
         audio_manager.get_audio("non_existent_audio")
     
     assert "audio file not found" in str(exc_info.value).lower()
 
-def test_save_audio_file_with_invalid_data(audio_manager):
+def test_save_audio_file_with_invalid_data(audio_manager: AudioManager) -> None:
     """不正なデータで音声ファイルを保存しようとした場合にエラーを返すことを確認"""
     with pytest.raises(ValueError) as exc_info:
-        audio_manager.save_audio(None, "test_audio")
+        audio_manager.save_audio(None, "test_audio")  # type: ignore
     
     assert "invalid audio data" in str(exc_info.value).lower()
 
-def test_save_audio_file_with_invalid_filename(audio_manager, sample_audio_data):
+def test_save_audio_file_with_invalid_filename(audio_manager: AudioManager, sample_audio_data: bytes) -> None:
     """不正なファイル名で音声ファイルを保存しようとした場合にエラーを返すことを確認"""
     with pytest.raises(ValueError) as exc_info:
         audio_manager.save_audio(sample_audio_data, "")
     
     assert "invalid filename" in str(exc_info.value).lower()
 
-def test_cleanup_old_audio_files(audio_manager, sample_audio_data):
+def test_cleanup_old_audio_files(audio_manager: AudioManager, sample_audio_data: bytes) -> None:
     """古い音声ファイルが正しく削除されることを確認"""
     # 複数の音声ファイルを作成
     file_paths = []
