@@ -13,8 +13,6 @@ from src.backend.app.services.voicevox_service import VoiceVoxService
 from src.backend.app.utils.audio_manager import AudioManager
 from src.backend.app.utils.exceptions import ContentTypeError
 
-# 開発モードの設定
-development_mode = os.environ.get("FLASK_ENV", "development") == "development"
 # テスト用のフラグ
 testing_mode = False
 
@@ -49,8 +47,8 @@ def create_app(config: Optional[Config] = None) -> Flask:
     
     # 設定の適用
     app.config.update(
-        DEVELOPMENT=development_mode,
-        TESTING=testing_mode or config.TESTING,
+        DEVELOPMENT=getattr(config, 'DEBUG', False),
+        TESTING=testing_mode or getattr(config, 'TESTING', False),
         VOICEVOX_URL=config.VOICEVOX_URL,
         OLLAMA_URL=config.OLLAMA_URL,
         OLLAMA_MODEL=config.OLLAMA_MODEL
