@@ -1,183 +1,76 @@
+I apologize for the misunderstanding. You're right - I should be providing complete, independent Markdown files for each document. Let me create comprehensive standalone files for each document you requested.
+
+# README.md
+
 # ManzAI Studio
 
-ローカルで動作する漫才生成・実演Webアプリケーション
+ManzAI Studio is a web application that generates and performs manzai (Japanese comedy) scripts using local LLMs and voice synthesis. It features Live2D character animations that sync with audio for a complete entertainment experience, all running locally on your machine.
 
-## 概要
+## Key Features
 
-ManzAI Studioは、OllamaのLLMを使用して漫才の台本を生成し、Live2Dキャラクターとボイスボックスを使用してアニメーションと音声で実演する、完全ローカルで動作するWebアプリケーションです。
+- **AI-Powered Script Generation**: Create manzai scripts on any topic using locally running LLMs
+- **Text-to-Speech Synthesis**: Convert generated scripts into natural-sounding voices
+- **Live2D Character Animation**: Characters perform with synchronized lip movements
+- **Completely Local Operation**: No internet connection required after setup
+- **Customizable Models & Prompts**: Add your own Live2D models and customize generation prompts
 
-## 必要要件
+## Quick Installation
 
-### システム要件
-- pyenv
-- Poetry
-- Node.js 18.0.0以上
-- 2GB以上の空き容量（モデルファイル用）
+```mermaid
+graph TD
+    A[Install Prerequisites] --> B[Clone Repository]
+    B --> C[Setup Backend]
+    B --> D[Setup Frontend]
+    C --> E[Start Services]
+    D --> E
+    E --> F[Open Browser at localhost:3000]
+```
 
-### 必須コンポーネント
-- [Ollama](https://ollama.ai/) - LLM実行環境
-- [VoiceVox](https://voicevox.hiroshiba.jp/) - 音声合成エンジン
-- Live2D Cubism SDK for Web
+### Prerequisites
 
-## セットアップ手順
+- Python 3.10+
+- Node.js 18+
+- Docker (recommended for easy setup)
+- Ollama and VoiceVox (automatically installed via Docker)
 
-### 1. 必須コンポーネントのインストール
+### Setup Using Docker (Recommended)
 
-#### pyenv と Poetry のインストール
 ```bash
-# macOSの場合
-brew install pyenv
-brew install poetry
+# Clone the repository
+git clone https://github.com/yourusername/manzai-studio.git
+cd manzai-studio
 
-# pyenvでPythonをインストール
+# Start with Docker Compose
+docker-compose up -d
+```
+
+Access the application at http://localhost:3000
+
+### Manual Setup
+
+```bash
+# Set up Python environment
 pyenv install 3.10.13
-pyenv local 3.10.13  # プロジェクトのPythonバージョンを設定
-```
-
-#### Ollamaのインストール
-```bash
-# macOSの場合
-curl -fsSL https://ollama.ai/install.sh | sh
-
-# 必要なモデルのダウンロード
-ollama pull gemma3:4b
-```
-
-#### VoiceVoxのインストール
-1. [VoiceVox公式サイト](https://voicevox.hiroshiba.jp/)からダウンロード
-2. インストーラーの指示に従ってインストール
-
-### 2. プロジェクトのセットアップ
-
-```bash
-# 1. Poetry環境のセットアップ
+pyenv local 3.10.13
 poetry install
 
-# 2. フロントエンド依存関係のインストール
+# Set up frontend
 cd frontend
 npm install
-```
-
-### 3. 開発サーバーの起動
-
-```bash
-# バックエンドサーバーの起動
-poetry run start
-
-# 別のターミナルでフロントエンドの開発サーバーを起動
-cd frontend
 npm run dev
+
+# In another terminal, start backend
+poetry run start
 ```
 
-## プロジェクト構造
+## Documentation
 
-```
-manzai_studio/
-├── src/
-│   ├── backend/
-│   │   ├── app/
-│   │   │   ├── __init__.py        # アプリケーションファクトリ
-│   │   │   ├── config.py          # 設定
-│   │   │   ├── models/            # データモデル
-│   │   │   ├── routes/            # APIルート
-│   │   │   ├── services/          # サービス層
-│   │   │   ├── templates/         # プロンプトテンプレート
-│   │   │   └── utils/             # ユーティリティ
-│   │   └── __init__.py
-│   ├── app.py                     # 後方互換性用エントリーポイント
-│   └── __init__.py
-├── frontend/
-│   ├── src/
-│   ├── public/
-│   └── package.json
-├── tests/
-│   ├── api/                       # APIテスト
-│   ├── services/                  # サービステスト
-│   └── conftest.py
-├── pyproject.toml
-├── poetry.lock
-└── README.md
-```
+- [Architecture Overview](docs/ARCHITECTURE.md)
+- [API Documentation](docs/API_DOCUMENTATION.md)
+- [Development Setup](docs/DEVELOPMENT_SETUP.md)
+- [Product Requirements](docs/PRD.md)
+- [Contributing Guidelines](docs/CONTRIBUTING.md)
 
-## 開発ガイドライン
+## License
 
-- コードスタイル: black, flake8, mypyによる自動フォーマットと型チェック
-- コミットメッセージ: Conventional Commitsに従う
-- ブランチ戦略: GitHub Flow
-
-### コード品質管理
-
-```bash
-# コードフォーマット
-poetry run black .
-
-# 型チェック
-poetry run mypy .
-
-# テスト実行
-poetry run pytest
-```
-
-## ライセンス
-
-MIT License
-
-## 貢献について
-
-プルリクエストは大歓迎です。大きな変更を加える場合は、まずissueを作成して変更内容を議論してください。
-
-## 使い方
-
-### Poetryによる開発環境でのセットアップと実行
-
-1. 依存関係をインストールする:
-   ```bash
-   poetry install
-   ```
-
-2. アプリケーションを起動する:
-   ```bash
-   poetry run start
-   ```
-
-3. テストを実行する:
-   ```bash
-   poetry run test
-   ```
-
-4. カバレッジレポート付きでテストを実行する:
-   ```bash
-   poetry run coverage
-   ```
-
-5. リンターを実行する:
-   ```bash
-   poetry run lint
-   ```
-
-6. コードをフォーマットする:
-   ```bash
-   poetry run format
-   ```
-
-7. 型チェックを実行する:
-   ```bash
-   poetry run type-check
-   ```
-
-### Dockerによる実行
-
-1. Docker Composeでサービスを起動する:
-   ```bash
-   docker-compose up -d
-   ```
-
-2. サービスの状態を確認する:
-   ```bash
-   docker-compose ps
-   ```
-
-3. サービスを停止する:
-   ```bash
-   docker-compose down
-   ``` 
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
