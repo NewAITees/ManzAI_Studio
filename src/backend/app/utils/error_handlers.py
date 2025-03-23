@@ -42,14 +42,19 @@ def api_error_handler(f: Callable) -> Callable:
                 response["details"] = e.details
             return jsonify(response), e.status_code
         except ValidationError as e:
-            # Pydanticのバリデーションエラーを処理
+            # Pydantic v2のバリデーションエラーを処理
             error_details = []
             for error in e.errors():
-                error_details.append({
-                    "loc": error["loc"],
-                    "msg": error["msg"],
-                    "type": error["type"]
-                })
+                error_detail = {
+                    "loc": error.get("loc", []),
+                    "msg": error.get("msg", ""),
+                    "type": error.get("type", ""),
+                    "input": error.get("input", None),
+                    "ctx": error.get("ctx", {}),
+                }
+                if error.get("url"):
+                    error_detail["url"] = error["url"]
+                error_details.append(error_detail)
             return jsonify({
                 "error": "Validation error",
                 "details": error_details
@@ -71,11 +76,16 @@ def handle_pydantic_validation_error(e: ValidationError) -> Tuple[Response, int]
     """
     error_details = []
     for error in e.errors():
-        error_details.append({
-            "loc": error["loc"],
-            "msg": error["msg"],
-            "type": error["type"]
-        })
+        error_detail = {
+            "loc": error.get("loc", []),
+            "msg": error.get("msg", ""),
+            "type": error.get("type", ""),
+            "input": error.get("input", None),
+            "ctx": error.get("ctx", {}),
+        }
+        if error.get("url"):
+            error_detail["url"] = error["url"]
+        error_details.append(error_detail)
     
     return jsonify({
         "error": "Validation error",

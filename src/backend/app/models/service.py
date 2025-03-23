@@ -13,6 +13,20 @@ class OllamaModel(BaseModel):
     digest: Optional[str] = Field(None, description="モデルダイジェスト")
     details: Optional[Dict[str, Any]] = Field(None, description="モデルの詳細情報")
 
+    model_config = {
+        "json_schema_extra": {
+            "examples": [
+                {
+                    "name": "llama2",
+                    "size": 123456789,
+                    "modified_at": "2024-03-23T12:34:56Z",
+                    "digest": "sha256:abc123...",
+                    "details": {"version": "2.0"}
+                }
+            ]
+        }
+    }
+
 
 class VoiceVoxSpeaker(BaseModel):
     """VoiceVox話者情報を表すモデル"""
@@ -20,6 +34,19 @@ class VoiceVoxSpeaker(BaseModel):
     name: str = Field(..., description="話者名")
     style_id: Optional[int] = Field(None, description="スタイルID")
     style_name: Optional[str] = Field(None, description="スタイル名")
+
+    model_config = {
+        "json_schema_extra": {
+            "examples": [
+                {
+                    "id": 1,
+                    "name": "四国めたん",
+                    "style_id": 2,
+                    "style_name": "ノーマル"
+                }
+            ]
+        }
+    }
 
 
 class OllamaStatus(BaseModel):

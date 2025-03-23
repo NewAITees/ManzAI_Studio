@@ -3,7 +3,7 @@
 from enum import Enum
 from typing import List, Optional, Dict, Any
 
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel, Field, field_validator, model_validator
 
 
 class Role(str, Enum):
@@ -17,7 +17,8 @@ class ScriptLine(BaseModel):
     role: Role = Field(..., description="セリフの発話者の役割")
     text: str = Field(..., description="セリフの内容")
 
-    @validator("text")
+    @field_validator("text")
+    @classmethod
     def text_cannot_be_empty(cls, v: str) -> str:
         """テキストが空でないことを検証"""
         if not v or not v.strip():
@@ -30,12 +31,12 @@ class ManzaiScript(BaseModel):
     script: List[ScriptLine] = Field(default_factory=list, description="スクリプトの行")
     topic: Optional[str] = Field(None, description="スクリプトのトピック")
 
-    @validator("script")
-    def script_must_have_lines(cls, v: List[ScriptLine]) -> List[ScriptLine]:
+    @model_validator(mode='after')
+    def script_must_have_lines(self) -> 'ManzaiScript':
         """スクリプトが少なくとも1行あることを検証"""
-        if not v:
+        if not self.script:
             raise ValueError("スクリプトは少なくとも1行必要です")
-        return v
+        return self
 
 
 class GenerateScriptRequest(BaseModel):
@@ -44,7 +45,8 @@ class GenerateScriptRequest(BaseModel):
     model: str = Field("llama3", description="使用するモデル名")
     use_mock: bool = Field(False, description="モックデータを使用するかどうか")
 
-    @validator("topic")
+    @field_validator("topic")
+    @classmethod
     def topic_cannot_be_empty(cls, v: str) -> str:
         """トピックが空でないことを検証"""
         if not v or not v.strip():

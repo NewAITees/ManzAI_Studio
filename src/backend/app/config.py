@@ -2,7 +2,7 @@
 import os
 from typing import Optional
 
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel, Field, model_validator
 
 
 class BaseConfig(BaseModel):
@@ -22,10 +22,10 @@ class BaseConfig(BaseModel):
         description="OllamaのデフォルトモデルID"
     )
     
-    class Config:
-        """Pydanticの設定クラス"""
-        env_prefix = ""  # 環境変数の接頭辞（なし）
-        validate_assignment = True  # 代入時にバリデーションを行う
+    model_config = {
+        "env_prefix": "",  # 環境変数の接頭辞（なし）
+        "validate_assignment": True,  # 代入時にバリデーションを行う
+    }
 
 
 class TestConfig(BaseConfig):

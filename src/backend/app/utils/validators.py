@@ -11,7 +11,7 @@ import re
 from enum import Enum
 from typing import Dict, Any, List, Optional, Union, Tuple, Set
 
-from pydantic import BaseModel, Field, validator, root_validator
+from pydantic import BaseModel, Field, field_validator, model_validator
 from werkzeug.datastructures import FileStorage
 
 
@@ -29,7 +29,8 @@ class ModelData(BaseModel):
     description: Optional[str] = Field(None, description="モデルの説明")
     metadata: Optional[Dict[str, Any]] = Field(None, description="追加のメタデータ")
     
-    @validator("name")
+    @field_validator("name")
+    @classmethod
     def name_must_not_be_empty(cls, v: str) -> str:
         """モデル名が空でないことを検証"""
         if not v.strip():
@@ -44,7 +45,8 @@ class PromptData(BaseModel):
     description: Optional[str] = Field(None, description="プロンプトの説明")
     tags: List[str] = Field(default_factory=list, description="プロンプトのタグ")
     
-    @validator("name")
+    @field_validator("name")
+    @classmethod
     def validate_name_format(cls, v: str) -> str:
         """プロンプト名のフォーマットを検証"""
         if not v.strip():
@@ -53,14 +55,16 @@ class PromptData(BaseModel):
             raise ValueError("プロンプト名は英数字、アンダースコア、ハイフンのみを含むことができます")
         return v
     
-    @validator("content")
+    @field_validator("content")
+    @classmethod
     def content_must_not_be_empty(cls, v: str) -> str:
         """プロンプト内容が空でないことを検証"""
         if not v.strip():
             raise ValueError("プロンプト内容は空にできません")
         return v
     
-    @validator("tags", each_item=True)
+    @field_validator("tags", each_item=True)
+    @classmethod
     def tags_must_be_strings(cls, v: str) -> str:
         """各タグが文字列であることを検証"""
         if not isinstance(v, str):
@@ -75,7 +79,8 @@ class ScriptParams(BaseModel):
     max_length: int = Field(1000, ge=100, le=2000, description="生成する最大トークン数")
     temperature: float = Field(0.7, ge=0, le=2, description="生成の多様性")
     
-    @validator("topic")
+    @field_validator("topic")
+    @classmethod
     def topic_must_not_be_empty(cls, v: str) -> str:
         """トピックが空でないことを検証"""
         if not v.strip():

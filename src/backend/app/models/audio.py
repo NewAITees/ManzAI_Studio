@@ -3,7 +3,7 @@
 from typing import Dict, List, Any, Optional
 from datetime import datetime
 
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel, Field, field_validator
 
 
 class AudioFile(BaseModel):
@@ -13,14 +13,16 @@ class AudioFile(BaseModel):
     created_at: datetime = Field(default_factory=datetime.now, description="作成日時")
     size_bytes: Optional[int] = Field(None, description="ファイルサイズ（バイト）")
 
-    @validator("path")
+    @field_validator("path")
+    @classmethod
     def path_must_be_valid(cls, v: str) -> str:
         """パスが空でないことを検証"""
         if not v:
             raise ValueError("ファイルパスは空にできません")
         return v
 
-    @validator("filename")
+    @field_validator("filename")
+    @classmethod
     def filename_must_be_valid(cls, v: str) -> str:
         """ファイル名が空でないことを検証"""
         if not v:
@@ -35,7 +37,8 @@ class SpeechTimingData(BaseModel):
     phoneme: str = Field(..., description="音素")
     text: str = Field(..., description="テキスト")
 
-    @validator("start_time", "end_time")
+    @field_validator("start_time", "end_time")
+    @classmethod
     def time_must_be_positive(cls, v: float) -> float:
         """時間が正の値であることを検証"""
         if v < 0:
