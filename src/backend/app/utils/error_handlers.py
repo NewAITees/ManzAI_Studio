@@ -1,7 +1,7 @@
 """API Error handlers for the Flask application."""
 from typing import Dict, Any, Callable, Tuple, List, Union, Optional
 from functools import wraps
-from flask import jsonify, Response
+from flask import jsonify, Response, Flask
 
 from pydantic import ValidationError
 
@@ -80,4 +80,39 @@ def handle_pydantic_validation_error(e: ValidationError) -> Tuple[Response, int]
     return jsonify({
         "error": "Validation error",
         "details": error_details
-    }), 400 
+    }), 400
+
+
+def register_error_handlers(app: Flask) -> None:
+    """Register error handlers with the Flask application.
+    
+    Args:
+        app: Flask application instance.
+    """
+    @app.errorhandler(400)
+    def bad_request(e) -> Tuple[Response, int]:
+        """Handle bad request errors."""
+        return jsonify({"error": str(e)}), 400
+
+    @app.errorhandler(404)
+    def not_found(e) -> Tuple[Response, int]:
+        """Handle not found errors."""
+        return jsonify({"error": "Resource not found"}), 404
+
+    @app.errorhandler(500)
+    def internal_server_error(e) -> Tuple[Response, int]:
+        """Handle internal server errors."""
+        return jsonify({"error": "Internal server error"}), 500
+
+    @app.errorhandler(APIError)
+    def handle_api_error(e: APIError) -> Tuple[Response, int]:
+        """Handle custom API errors."""
+        response = {"error": e.message}
+        if e.details:
+            response["details"] = e.details
+        return jsonify(response), e.status_code
+
+    @app.errorhandler(ValidationError)
+    def handle_validation_error(e: ValidationError) -> Tuple[Response, int]:
+        """Handle Pydantic validation errors."""
+        return handle_pydantic_validation_error(e) 

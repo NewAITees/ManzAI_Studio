@@ -6,12 +6,15 @@ import logging
 from typing import Dict, Any, cast, Optional
 from flask import Flask, Response, jsonify
 from flask_cors import CORS
+import psutil
 
 from src.backend.app.config import Config, get_config
 from src.backend.app.services.ollama_service import OllamaService
 from src.backend.app.services.voicevox_service import VoiceVoxService
-from src.backend.app.utils.audio_manager import AudioManager
+from src.backend.app.services.audio_manager import AudioManager
 from src.backend.app.utils.exceptions import ContentTypeError
+from src.backend.app.routes.api import api_bp
+from src.backend.app.utils.error_handlers import register_error_handlers
 
 # テスト用のフラグ
 testing_mode = False
@@ -59,27 +62,11 @@ def create_app(config: Optional[Config] = None) -> Flask:
     app.voicevox_service = VoiceVoxService(base_url=config.VOICEVOX_URL)
     app.audio_manager = AudioManager()
 
+    # エラーハンドラの登録
+    register_error_handlers(app)
+
     # ブループリントの登録
-    from src.backend.app.routes import api
-    app.register_blueprint(api.bp)
-
-    # エラーハンドラーの登録
-    @app.errorhandler(400)
-    def bad_request(e):
-        return jsonify({"error": str(e)}), 400
-
-    @app.errorhandler(404)
-    def not_found(e):
-        return jsonify({"error": "Resource not found"}), 404
-
-    @app.errorhandler(500)
-    def internal_server_error(e):
-        return jsonify({"error": "Internal server error"}), 500
-
-    @app.errorhandler(ContentTypeError)
-    def handle_content_type_error(e):
-        """Content-Typeエラーのハンドラ"""
-        return jsonify({'error': str(e)}), 415
+    app.register_blueprint(api_bp)
 
     @app.route("/", methods=["GET"])
     def index() -> Response:

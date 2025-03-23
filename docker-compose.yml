@@ -15,7 +15,7 @@ services:
     env_file:
       - .env
     environment:
-      - FLASK_APP=src.app:create_app
+      - FLASK_APP=src.backend.app:create_app
       - FLASK_ENV=${FLASK_ENV:-production}
       - FLASK_DEBUG=${FLASK_DEBUG:-0}
       - VOICEVOX_URL=http://voicevox:50021

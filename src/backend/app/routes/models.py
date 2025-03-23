@@ -6,14 +6,12 @@ import json
 import glob
 
 from src.backend.app.utils.error_handlers import api_error_handler, APIError
-
-bp = Blueprint("models", __name__, url_prefix="/api/models")
+from src.backend.app.routes.api import api_bp
 
 # モデルディレクトリパス（開発環境と本番環境で異なる可能性あり）
 LIVE2D_BASE_DIR = os.path.join(os.getcwd(), "frontend", "public", "live2d", "models")
 
-
-@bp.route("/live2d", methods=["GET"])
+@api_bp.route("/models/live2d", methods=["GET"])
 @api_error_handler
 def get_live2d_models() -> Dict[str, Any]:
     """Get available Live2D models.
@@ -63,7 +61,7 @@ def get_live2d_models() -> Dict[str, Any]:
         raise APIError(f"モデル一覧の取得中にエラーが発生しました: {str(e)}", 500)
 
 
-@bp.route("/live2d/register", methods=["POST"])
+@api_bp.route("/models/live2d/register", methods=["POST"])
 @api_error_handler
 def register_model() -> Dict[str, Any]:
     """Register a new Live2D model with metadata.

@@ -5,14 +5,13 @@ import os
 import json
 
 from src.backend.app.utils.error_handlers import api_error_handler, APIError
-
-bp = Blueprint("prompts", __name__, url_prefix="/api/prompts")
+from src.backend.app.routes.api import api_bp
 
 # プロンプトディレクトリパス
 PROMPT_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), "templates")
 
 
-@bp.route("", methods=["GET"])
+@api_bp.route("/prompts", methods=["GET"])
 @api_error_handler
 def get_prompts() -> Dict[str, Any]:
     """Get available prompt templates.
@@ -68,7 +67,7 @@ def get_prompts() -> Dict[str, Any]:
         raise APIError(f"プロンプト一覧の取得中にエラーが発生しました: {str(e)}", 500)
 
 
-@bp.route("/<prompt_id>", methods=["GET"])
+@api_bp.route("/prompts/<prompt_id>", methods=["GET"])
 @api_error_handler
 def get_prompt(prompt_id: str) -> Dict[str, Any]:
     """Get a specific prompt template.
@@ -117,7 +116,7 @@ def get_prompt(prompt_id: str) -> Dict[str, Any]:
         raise APIError(f"プロンプトの取得中にエラーが発生しました: {str(e)}", 500)
 
 
-@bp.route("", methods=["POST"])
+@api_bp.route("/prompts", methods=["POST"])
 @api_error_handler
 def create_prompt() -> Dict[str, Any]:
     """Create a new prompt template.
@@ -168,7 +167,7 @@ def create_prompt() -> Dict[str, Any]:
     })
 
 
-@bp.route("/<prompt_id>", methods=["PUT"])
+@api_bp.route("/prompts/<prompt_id>", methods=["PUT"])
 @api_error_handler
 def update_prompt(prompt_id: str) -> Dict[str, Any]:
     """Update a prompt template.
@@ -233,7 +232,7 @@ def update_prompt(prompt_id: str) -> Dict[str, Any]:
     })
 
 
-@bp.route("/<prompt_id>", methods=["DELETE"])
+@api_bp.route("/prompts/<prompt_id>", methods=["DELETE"])
 @api_error_handler
 def delete_prompt(prompt_id: str) -> Dict[str, Any]:
     """Delete a prompt template.

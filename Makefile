@@ -34,4 +34,14 @@ clean:
 
 # テスト実行
 test:
-	docker-compose run --rm backend poetry run pytest 
+	docker-compose run --rm backend poetry run pytest
+
+# Dockerイメージを完全に再ビルド
+rebuild:
+	docker-compose -f docker-compose.dev.yml down
+	docker-compose -f docker-compose.dev.yml build --no-cache
+	docker-compose -f docker-compose.dev.yml up -d
+
+# バックエンドログの表示
+backend-logs:
+	docker-compose logs -f backend 

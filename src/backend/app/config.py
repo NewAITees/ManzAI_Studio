@@ -40,6 +40,8 @@ class DevelopmentConfig(BaseConfig):
     """開発環境の設定"""
     
     DEBUG: bool = Field(True, description="デバッグモードかどうか")
+    VOICEVOX_URL: str = Field("http://voicevox:50021", description="VoiceVox API URL (開発環境)")
+    OLLAMA_URL: str = Field("http://ollama:11434", description="Ollama API URL (開発環境)")
 
 
 class ProductionConfig(BaseConfig):
