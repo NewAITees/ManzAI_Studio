@@ -115,4 +115,4 @@ def register_error_handlers(app: Flask) -> None:
     @app.errorhandler(ValidationError)
     def handle_validation_error(e: ValidationError) -> Tuple[Response, int]:
         """Handle Pydantic validation errors."""
-        return handle_pydantic_validation_error(e) 
+        return handle_pydantic_validation_error(e)
