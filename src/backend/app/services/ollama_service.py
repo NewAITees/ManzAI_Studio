@@ -116,7 +116,10 @@ class OllamaClient:
         # モデルの存在確認
         if model_name not in status["models"]:
             available_models = ", ".join(status["models"]) if status["models"] else "none"
-            error_message = f"Requested model '{model_name}' is not available. Available models: {available_models}"
+            error_message = (
+                f"Requested model '{model_name}' is not available. "
+                f"Available models: {available_models}"
+            )
             logger.error(error_message)
             raise OllamaServiceError(error_message)
 
@@ -224,7 +227,7 @@ class OllamaClient:
         try:
             json.loads(text)
             return text
-        except:
+        except (json.JSONDecodeError, ValueError):
             pass
 
         raise OllamaServiceError("Could not extract JSON block from response")
@@ -287,7 +290,11 @@ class OllamaClient:
         """Ollamaサーバーの状態と利用可能なモデルを確認
 
         Returns:
-            状態情報の辞書 {"available": bool, "models": List[str], "error": Optional[str], "instance_type": str}
+            状態情報の辞書:
+            - "available": bool
+            - "models": List[str]
+            - "error": Optional[str]
+            - "instance_type": str
 
         Note:
             このメソッドは例外を発生させず、状態情報を返す
@@ -563,9 +570,11 @@ class OllamaService:
                 if health_check["available_models"]
                 else "none"
             )
-            raise OllamaServiceError(
-                f"Requested model '{model_name}' is not available on {self.instance_type} instance. Available models: {available_models}"
+            error_msg = (
+                f"Model '{model_name}' not available on {self.instance_type} instance. "
+                f"Available: {available_models}"
             )
+            raise OllamaServiceError(error_msg)
 
         prompt = self.prompt_loader.load_template("manzai_prompt", topic=topic)
 

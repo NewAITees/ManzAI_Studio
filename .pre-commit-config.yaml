@@ -15,6 +15,7 @@ repos:
       - id: mypy
         additional_dependencies: [types-requests]
         args: [--ignore-missing-imports]
+        exclude: ^(tests/|integrate_code\.py)
   - repo: https://github.com/PyCQA/bandit
     rev: 1.8.5
     hooks:

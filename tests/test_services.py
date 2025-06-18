@@ -1,6 +1,7 @@
 """Test service modules."""
 
 import json
+import os
 from unittest.mock import Mock, patch
 
 import pytest
@@ -191,18 +192,6 @@ def mock_prompt_loader():
     return mock_loader
 
 
-@pytest.fixture
-def ollama_service(mock_ollama_client, mock_prompt_loader):
-    """Create OllamaService with mocked dependencies."""
-    with patch(
-        "src.backend.app.services.ollama_service.OllamaClient",
-        return_value=mock_ollama_client,
-    ):
-        service = OllamaService(base_url="http://test:11434", instance_type="test")
-        service.prompt_loader = mock_prompt_loader
-        return service
-
-
 def test_check_availability(ollama_service, mock_ollama_client):
     """Test check_availability method."""
     result = ollama_service.check_availability()
@@ -235,25 +224,6 @@ def test_perform_health_check(ollama_service, mock_ollama_client):
     assert result["error"] is None
 
 
-def test_generate_manzai_script_success(ollama_service, mock_ollama_client, mock_prompt_loader):
-    """Test successful script generation."""
-    mock_ollama_client.generate_json_sync.return_value = {
-        "script": [
-            {"speaker": "A", "text": "こんにちは、今日は{topic}について話しましょう。"},
-            {"speaker": "B", "text": "はい、{topic}は面白いですね！"},
-        ]
-    }
-    topic = "AI技術"
-    result = ollama_service.generate_manzai_script(topic, "gemma3:4b")
-    assert len(result) == 2
-    assert isinstance(result[0], ScriptLine)
-    assert result[0].role == Role.TSUKKOMI
-    assert result[0].text == f"こんにちは、今日は{topic}について話しましょう。"
-    assert result[1].role == Role.BOKE
-    mock_prompt_loader.load_template.assert_called_once_with("manzai_prompt", topic=topic)
-    mock_ollama_client.generate_json_sync.assert_called_once()
-
-
 def test_generate_manzai_script_empty_topic(ollama_service):
     """Test script generation with empty topic."""
     with pytest.raises(ValueError, match="Topic cannot be empty"):
@@ -274,7 +244,7 @@ def test_generate_manzai_script_server_unavailable(ollama_service, mock_ollama_c
             "available_models": [],
             "error": "Connection refused",
         }
-        with pytest.raises(OllamaServiceError, match="Ollama server .* is not available"):
+        with pytest.raises(OllamaServiceError, match=r"Ollama server .* is not available"):
             ollama_service.generate_manzai_script("Test topic")
 
 
@@ -577,7 +547,7 @@ def test_check_availability_error(voicevox_service, mock_requests):
     assert "Connection error" in result["error"]
 
 
-def test_get_detailed_status(voicevox_service):
+def test_voicevox_get_detailed_status(voicevox_service):
     """Test detailed status information retrieval."""
     with patch.object(voicevox_service, "check_availability") as mock_check:
         mock_check.return_value = {

@@ -50,7 +50,7 @@ class ProductionConfig(BaseConfig):
     DEBUG: bool = Field(False, description="デバッグモードかどうか")
 
 
-def get_config():
+def get_config() -> BaseConfig:
     """環境に基づいた設定を取得する
 
     Returns:

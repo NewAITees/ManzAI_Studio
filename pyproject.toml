@@ -102,15 +102,28 @@ select = [
 ignore = [
     "F401",  # unused import
     "F841",  # unused variable
+    "RUF001",  # ambiguous unicode character in string
+    "RUF002",  # ambiguous unicode character in docstring
+    "RUF003",  # ambiguous unicode character in comment
 ]
 unfixable = ["F401", "F841"]
 
 [tool.ruff.lint.per-file-ignores]
 "__init__.py" = ["F401"]
+"integrate_code.py" = ["ALL"]  # Temporary integration script
+"src/backend/app/utils/prompt_loader.py" = ["ANN401"]
+"src/backend/app/routes/*.py" = ["ANN"]
+"src/backend/app/utils/error_handlers.py" = ["ANN"]
+"src/backend/app/utils/exceptions.py" = ["ANN401"]
+"src/backend/app/utils/logger.py" = ["ANN"]
 "tests/**/*.py" = ["ANN"]
 
 [tool.ruff.lint.pydocstyle]
 convention = "google"
+
+[tool.bandit]
+exclude_dirs = ["tests"]
+skips = ["B101"]  # Skip assert_used warnings
 
 [tool.poetry.scripts]
 start = "src.backend.app:main"

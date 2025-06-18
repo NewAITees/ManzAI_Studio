@@ -50,7 +50,7 @@ DIRS_TO_INTEGRATE = [
 ]
 
 
-def check_files_identical(file1, file2):
+def check_files_identical(file1: Path, file2: Path) -> bool:
     """Check if two files are identical"""
     if not file1.exists() or not file2.exists():
         return False
@@ -58,7 +58,7 @@ def check_files_identical(file1, file2):
     return filecmp.cmp(file1, file2)
 
 
-def find_references(directory, pattern):
+def find_references(directory: Path, pattern: str) -> list[tuple[Path, int, str]]:
     """Find all references to a specific pattern in the codebase"""
     references = []
     for root, dirs, files in os.walk(directory):
@@ -78,7 +78,7 @@ def find_references(directory, pattern):
     return references
 
 
-def update_references(file_path, old_pattern, new_pattern) -> bool | None:
+def update_references(file_path: Path, old_pattern: str, new_pattern: str) -> bool | None:
     """Update references in a file from old pattern to new pattern"""
     try:
         with open(file_path, "r", encoding="utf-8") as f:
@@ -101,7 +101,7 @@ def update_references(file_path, old_pattern, new_pattern) -> bool | None:
         return False
 
 
-def create_backward_compatibility_module(src_dir, dst_dir) -> None:
+def create_backward_compatibility_module(src_dir: Path, dst_dir: Path) -> None:
     """Create a backward compatibility module that imports from the new location"""
     # Create __init__.py with imports
     init_content = (
@@ -122,7 +122,7 @@ def create_backward_compatibility_module(src_dir, dst_dir) -> None:
     logger.info(f"Created backward compatibility module in {init_path}")
 
 
-def integrate_directory(src_dir, dst_dir) -> None:
+def integrate_directory(src_dir: Path, dst_dir: Path) -> None:
     """Integrate files from src_dir into dst_dir"""
     if not src_dir.exists():
         logger.warning(f"Source directory {src_dir} does not exist. Skipping.")

@@ -20,7 +20,9 @@ class PromptTemplateNotFoundError(Exception):
 class PromptLoader:
     """プロンプトローダークラス"""
 
-    def __init__(self, prompts_dir: Optional[str] = None, templates_dir: Optional[str] = None) -> None:
+    def __init__(
+        self, prompts_dir: Optional[str] = None, templates_dir: Optional[str] = None
+    ) -> None:
         """
         Args:
             prompts_dir: JSONプロンプトファイルのディレクトリパス
