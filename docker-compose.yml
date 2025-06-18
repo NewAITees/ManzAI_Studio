@@ -29,7 +29,7 @@ services:
       - ollama
     networks:
       - manzai-network
-    restart: unless-stopped
+    restart: "no"
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:5000/api/health"]
       interval: 30s
@@ -55,7 +55,7 @@ services:
       - backend
     networks:
       - manzai-network
-    restart: unless-stopped
+    restart: "no"
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:3000"]
       interval: 30s
@@ -71,7 +71,7 @@ services:
       - voicevox_data:/opt/voicevox_engine
     networks:
       - manzai-network
-    restart: unless-stopped
+    restart: "no"
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:50021/docs"]
       interval: 30s
@@ -90,7 +90,7 @@ services:
       - OLLAMA_MODELS=/root/.ollama/models
     networks:
       - manzai-network
-    restart: unless-stopped
+    restart: "no"
     deploy:
       resources:
         limits:
@@ -111,4 +111,4 @@ networks:
 volumes:
   app_data:
   ollama_data:
-  voicevox_data: 
+  voicevox_data:
