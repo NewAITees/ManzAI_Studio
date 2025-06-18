@@ -1,17 +1,18 @@
 """API Error handlers for the Flask application."""
-from typing import Dict, Any, Callable, Tuple, List, Union, Optional
-from functools import wraps
-from flask import jsonify, Response, Flask
 
+from functools import wraps
+from typing import Any, Callable, Tuple, Union
+
+from flask import Flask, Response, jsonify
 from pydantic import ValidationError
 
 
 class APIError(Exception):
     """Custom API error class for handling API errors."""
-    
+
     def __init__(self, message: str, status_code: int = 400, details: Any = None) -> None:
         """Initialize the API error.
-        
+
         Args:
             message: Error message.
             status_code: HTTP status code.
@@ -25,13 +26,14 @@ class APIError(Exception):
 
 def api_error_handler(f: Callable) -> Callable:
     """Decorator that handles API errors.
-    
+
     Args:
         f: The function to decorate.
-        
+
     Returns:
         Decorated function.
     """
+
     @wraps(f)
     def decorated(*args, **kwargs) -> Union[Tuple[Response, int], Any]:
         try:
@@ -55,22 +57,19 @@ def api_error_handler(f: Callable) -> Callable:
                 if error.get("url"):
                     error_detail["url"] = error["url"]
                 error_details.append(error_detail)
-            return jsonify({
-                "error": "Validation error",
-                "details": error_details
-            }), 400
+            return jsonify({"error": "Validation error", "details": error_details}), 400
         except Exception as e:
-            return jsonify({"error": f"Unexpected error: {str(e)}"}), 500
-            
+            return jsonify({"error": f"Unexpected error: {e!s}"}), 500
+
     return decorated
 
 
 def handle_pydantic_validation_error(e: ValidationError) -> Tuple[Response, int]:
     """Pydanticのバリデーションエラーをレスポンスに変換する
-    
+
     Args:
         e: ValidationErrorインスタンス
-        
+
     Returns:
         エラーレスポンスとステータスコード
     """
@@ -86,19 +85,17 @@ def handle_pydantic_validation_error(e: ValidationError) -> Tuple[Response, int]
         if error.get("url"):
             error_detail["url"] = error["url"]
         error_details.append(error_detail)
-    
-    return jsonify({
-        "error": "Validation error",
-        "details": error_details
-    }), 400
+
+    return jsonify({"error": "Validation error", "details": error_details}), 400
 
 
 def register_error_handlers(app: Flask) -> None:
     """Register error handlers with the Flask application.
-    
+
     Args:
         app: Flask application instance.
     """
+
     @app.errorhandler(400)
     def bad_request(e) -> Tuple[Response, int]:
         """Handle bad request errors."""

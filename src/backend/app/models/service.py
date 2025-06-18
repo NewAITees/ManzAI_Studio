@@ -1,15 +1,18 @@
 """サービス関連のデータモデル定義"""
 
-from typing import Dict, List, Any, Optional
+from typing import Any, Dict, List, Optional
 
 from pydantic import BaseModel, Field
 
 
 class OllamaModel(BaseModel):
     """Ollamaモデル情報を表すモデル"""
+
     name: str = Field(..., description="モデル名")
     size: Optional[int] = Field(None, description="モデルサイズ（バイト）")
-    modified_at: Optional[str] = Field(None, description="最終更新タイムスタンプ（ISO 8601形式の文字列）")
+    modified_at: Optional[str] = Field(
+        None, description="最終更新タイムスタンプ（ISO 8601形式の文字列）"
+    )
     digest: Optional[str] = Field(None, description="モデルダイジェスト")
     details: Optional[Dict[str, Any]] = Field(None, description="モデルの詳細情報")
 
@@ -21,7 +24,7 @@ class OllamaModel(BaseModel):
                     "size": 123456789,
                     "modified_at": "2024-03-23T12:34:56Z",
                     "digest": "sha256:abc123...",
-                    "details": {"version": "2.0"}
+                    "details": {"version": "2.0"},
                 }
             ]
         }
@@ -30,6 +33,7 @@ class OllamaModel(BaseModel):
 
 class VoiceVoxSpeaker(BaseModel):
     """VoiceVox話者情報を表すモデル"""
+
     id: int = Field(..., description="話者ID")
     name: str = Field(..., description="話者名")
     style_id: Optional[int] = Field(None, description="スタイルID")
@@ -37,20 +41,14 @@ class VoiceVoxSpeaker(BaseModel):
 
     model_config = {
         "json_schema_extra": {
-            "examples": [
-                {
-                    "id": 1,
-                    "name": "四国めたん",
-                    "style_id": 2,
-                    "style_name": "ノーマル"
-                }
-            ]
+            "examples": [{"id": 1, "name": "四国めたん", "style_id": 2, "style_name": "ノーマル"}]
         }
     }
 
 
 class OllamaStatus(BaseModel):
     """Ollamaサービスの状態を表すモデル"""
+
     available: bool = Field(False, description="サービスが利用可能かどうか")
     models: Optional[List[OllamaModel]] = Field(None, description="利用可能なモデル一覧")
     error: Optional[str] = Field(None, description="エラーメッセージ（該当する場合）")
@@ -62,6 +60,7 @@ class OllamaStatus(BaseModel):
 
 class VoiceVoxStatus(BaseModel):
     """VoiceVoxサービスの状態を表すモデル"""
+
     available: bool = Field(False, description="サービスが利用可能かどうか")
     speakers: Optional[List[VoiceVoxSpeaker]] = Field(None, description="利用可能な話者一覧")
     error: Optional[str] = Field(None, description="エラーメッセージ（該当する場合）")
@@ -72,11 +71,12 @@ class VoiceVoxStatus(BaseModel):
 
 class ServiceStatus(BaseModel):
     """サービスの状態を表すモデル"""
+
     ollama: OllamaStatus = Field(
         default_factory=lambda: OllamaStatus(available=False, models=None, error=None),
-        description="Ollamaサービスの状態"
+        description="Ollamaサービスの状態",
     )
     voicevox: VoiceVoxStatus = Field(
         default_factory=lambda: VoiceVoxStatus(available=False, speakers=None, error=None),
-        description="VoiceVoxサービスの状態"
-    ) 
+        description="VoiceVoxサービスの状態",
+    )

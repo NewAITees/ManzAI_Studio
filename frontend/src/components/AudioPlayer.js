@@ -38,7 +38,7 @@ const AudioPlayer = ({ audioData, onPlayStateChange }) => {
       // 現在の音声と再生位置を設定
       currentAudioRef.current = audio;
       setCurrentIndex(index);
-      
+
       // 再生状態をアップデート
       setIsPlaying(true);
       onPlayStateChange(true, audio, index);
@@ -79,7 +79,7 @@ const AudioPlayer = ({ audioData, onPlayStateChange }) => {
         audio.currentTime = 0;
       }
     });
-    
+
     setIsPlaying(false);
     setCurrentIndex(-1);
     onPlayStateChange(false, null, -1);
@@ -97,7 +97,7 @@ const AudioPlayer = ({ audioData, onPlayStateChange }) => {
           data-testid={`audio-element-${index}`}
         />
       ))}
-      
+
       {/* 再生/停止ボタン */}
       <button
         onClick={handlePlay}
@@ -106,7 +106,7 @@ const AudioPlayer = ({ audioData, onPlayStateChange }) => {
       >
         {isPlaying ? '停止' : '再生'}
       </button>
-      
+
       {/* 再生中の音声表示 */}
       {isPlaying && currentIndex >= 0 && (
         <div className="now-playing">
@@ -127,4 +127,4 @@ AudioPlayer.propTypes = {
   onPlayStateChange: PropTypes.func.isRequired
 };
 
-export default AudioPlayer; 
+export default AudioPlayer;

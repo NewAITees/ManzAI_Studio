@@ -18,4 +18,4 @@ COPY . .
 RUN mkdir -p audio
 
 # Run the application with host 0.0.0.0 to allow external access
-CMD ["python", "-m", "flask", "--app", "src.app:create_app", "run", "--host=0.0.0.0", "--port=5000"] 
+CMD ["python", "-m", "flask", "--app", "src.app:create_app", "run", "--host=0.0.0.0", "--port=5000"]

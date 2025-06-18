@@ -91,17 +91,17 @@ sequenceDiagram
     participant UI as User Interface
     participant Audio as Audio System
     participant Animation as Character Animation
-    
+
     User->>UI: Click Play button
     UI->>Audio: Start audio playback
     UI->>Animation: Sync character animation
-    
+
     loop For each line in script
         Audio->>Animation: Trigger mouth movements
         Animation->>UI: Update character display
         UI->>User: Show current line highlight
     end
-    
+
     Audio->>UI: Playback complete
     UI->>Animation: Reset characters
     UI->>User: Show replay option
@@ -129,11 +129,11 @@ graph TD
     Settings --> Voices[Voice Settings]
     Settings --> Prompts[Prompt Management]
     Settings --> Display[Display Options]
-    
+
     Characters --> CharacterList[Character List]
     CharacterList --> CharacterDetail[Character Detail]
     CharacterDetail --> UpdateCharacter[Update Character]
-    
+
     Prompts --> PromptList[Prompt List]
     PromptList --> PromptEdit[Edit Prompt]
     PromptList --> PromptCreate[Create Prompt]
@@ -149,7 +149,7 @@ graph TD
 sequenceDiagram
     participant User
     participant App
-    
+
     User->>App: Open application
     App->>User: Display home screen
     User->>App: Enter topic "Travel"
@@ -168,7 +168,7 @@ sequenceDiagram
     participant User
     participant App
     participant Settings
-    
+
     User->>App: Open application
     App->>User: Display home screen
     User->>App: Click Settings
@@ -190,7 +190,7 @@ sequenceDiagram
     participant App
     participant Settings
     participant PromptEditor
-    
+
     User->>App: Open application
     App->>User: Display home screen
     User->>App: Click Settings
@@ -215,7 +215,7 @@ sequenceDiagram
     participant App
     participant Settings
     participant OBS as "OBS/Streaming Software"
-    
+
     User->>App: Open application
     App->>User: Display home screen
     User->>App: Click Settings
@@ -241,7 +241,7 @@ sequenceDiagram
     participant User
     participant App
     participant LLM
-    
+
     User->>App: Enter topic
     User->>App: Click Generate
     App->>LLM: Request script generation
@@ -259,7 +259,7 @@ sequenceDiagram
     participant User
     participant App
     participant VoiceVox
-    
+
     User->>App: Play generated script
     App->>VoiceVox: Request voice synthesis
     VoiceVox-->>App: Return error
@@ -275,16 +275,16 @@ flowchart TD
     A[Start Application] --> B{Check Dependencies}
     B -->|Missing| C[Show Setup Guide]
     B -->|Available| D[Enable Features]
-    
+
     C --> E{Install Missing}
     E -->|Success| D
     E -->|Fail| F[Limited Mode]
-    
+
     subgraph "Error Handling"
     F --> G[Show Offline Features]
     G --> H[Provide Troubleshooting]
     end
-    
+
     D --> I[Normal Operation]
 ```
 
@@ -296,24 +296,24 @@ flowchart TD
     B -->|Yes| C[Process Input]
     B -->|No| D[Show Error]
     D --> A
-    
+
     C --> E{Model Available?}
     E -->|Yes| F[Generate Script]
     E -->|No| G[Show Model Error]
     G --> H[Offer Alternatives]
     H --> E
-    
+
     F --> I{Generation Success?}
     I -->|Yes| J[Display Results]
     I -->|No| K[Show Generation Error]
     K --> L{Retry?}
     L -->|Yes| F
     L -->|No| A
-    
+
     J --> M{Play Performance?}
     M -->|Yes| N[Play Audio/Animation]
     M -->|No| A
-    
+
     N --> O{Voice Error?}
     O -->|Yes| P[Show Voice Error]
     O -->|No| Q[Complete Performance]
@@ -332,13 +332,13 @@ graph TD
     B --> C[Generate]
     C --> D[Script View]
     D --> E[Performance View]
-    
+
     subgraph "Mobile Adaptations"
     F[Tabbed Interface]
     G[Simplified Controls]
     H[Portrait Orientation Focus]
     end
-    
+
     F --> A
     G --> E
     H --> D
@@ -352,19 +352,19 @@ graph TD
     B --> C{Save Preferences}
     C -->|Success| D[Apply Settings]
     C -->|Failure| E[Show Error]
-    
+
     B --> F[Character Models]
     F --> G[Preview Model]
     G --> H{Accept Model}
     H -->|Yes| I[Update Character]
     H -->|No| F
-    
+
     B --> J[Voice Settings]
     J --> K[Preview Voice]
     K --> L{Accept Voice}
     L -->|Yes| M[Update Voice]
     L -->|No| J
-    
+
     B --> N[Prompt Templates]
     N --> O[Edit Template]
     O --> P{Save Template}
@@ -381,16 +381,16 @@ graph TD
     A[Monitor Resources] --> B{Resource Check}
     B -->|Normal| C[Full Features]
     B -->|Limited| D[Optimize Performance]
-    
+
     D --> E[Reduce Animation Quality]
     D --> F[Simplify Audio Processing]
     D --> G[Use Smaller Models]
-    
+
     C --> H[Normal Operation]
     E --> I[Degraded Operation]
     F --> I
     G --> I
-    
+
     I --> J[Notify User]
     J --> K[Suggest Optimizations]
 ```

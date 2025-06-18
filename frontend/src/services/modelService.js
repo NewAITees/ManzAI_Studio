@@ -29,4 +29,4 @@ export const registerLive2DModel = async (modelData) => {
     console.error('Failed to register Live2D model:', error);
     throw error;
   }
-}; 
+};

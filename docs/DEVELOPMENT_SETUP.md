@@ -30,11 +30,11 @@ flowchart TD
     A[Start Setup] --> B{Choose Setup Method}
     B -->|Docker| C[Docker Setup]
     B -->|Manual| D[Manual Setup]
-    
+
     C --> C1[Run docker-compose]
     C1 --> C2[Configure Environment Variables]
     C2 --> Z[Ready for Development]
-    
+
     D --> D1[Setup Python Environment]
     D --> D2[Setup Node Environment]
     D --> D3[Install External Services]
@@ -229,7 +229,7 @@ npm run test:watch
 
 **Problem**: Backend can't connect to VoiceVox
 
-**Solution**: 
+**Solution**:
 ```bash
 # Check if VoiceVox is running
 curl http://localhost:50021/version
@@ -256,7 +256,7 @@ flowchart TD
     B -->|Model Not Found| C[Pull the Model]
     B -->|Connection Refused| D[Check Ollama Service]
     B -->|Timeout| E[Check Resource Usage]
-    
+
     C --> C1[ollama pull gemma3:4b]
     D --> D1[docker-compose ps]
     D --> D2[docker-compose restart ollama]

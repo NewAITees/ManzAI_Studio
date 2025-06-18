@@ -124,4 +124,4 @@ echo -e "アプリケーションURL: ${GREEN}http://localhost:5000${NC}"
 echo -e "\n${YELLOW}次のコマンドでログを確認できます:${NC}"
 echo "docker-compose -f $DOCKER_COMPOSE_FILE logs -f"
 
-exit 0 
+exit 0

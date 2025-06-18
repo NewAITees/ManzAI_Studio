@@ -14,10 +14,10 @@ graph TD
     A --> C[Display Window]
     A --> D[Audio Player]
     A --> E[Settings Page]
-    
+
     E --> E1[Model Manager]
     E --> E2[Prompt Editor]
-    
+
     C --> C1[Live2D Display]
     D --> D1[Audio Elements]
 ```
@@ -32,7 +32,7 @@ graph TD
     B --> B1[Character State]
     B --> B2[Active Character]
     B --> B3[Character Model Change]
-    
+
     C[Component Tree] --> B
 ```
 
@@ -48,19 +48,19 @@ const App = () => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentAudioIndex, setCurrentAudioIndex] = useState(-1);
   const [mouthOpenValue, setMouthOpenValue] = useState(0);
-  
+
   // Component logic
-  
+
   return (
     <CharacterProvider>
       <div className="app-container">
         <header className="app-header">
           <h1>ManzAI Studio</h1>
         </header>
-        
+
         <main className="app-main">
           <InputForm onSubmit={handleGenerateScript} isGenerating={isGenerating} />
-          
+
           {script && (
             <>
               <section className="display-section">
@@ -69,7 +69,7 @@ const App = () => {
                   mouthOpenValue={mouthOpenValue}
                 />
               </section>
-              
+
               <section className="script-section">
                 <AudioPlayer
                   audioData={audioData}
@@ -96,12 +96,12 @@ const InputForm = ({ onSubmit, isGenerating }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    
+
     if (!topic.trim()) {
       setError('トピックを入力してください');
       return;
     }
-    
+
     setError('');
     onSubmit(topic);
   };
@@ -226,7 +226,7 @@ const AudioPlayer = ({ audioData, onPlayStateChange }) => {
           audio.currentTime = 0;
         }
       });
-      
+
       setIsPlaying(false);
       setCurrentIndex(-1);
       onPlayStateChange(false, null, -1);
@@ -247,7 +247,7 @@ const AudioPlayer = ({ audioData, onPlayStateChange }) => {
           preload="auto"
         />
       ))}
-      
+
       {/* Play/Stop button */}
       <button onClick={handlePlayToggle}>
         {isPlaying ? '停止' : '再生'}
@@ -263,30 +263,30 @@ const AudioPlayer = ({ audioData, onPlayStateChange }) => {
 graph TD
     root[frontend/] --> src[src/]
     root --> public[public/]
-    
+
     src --> components[components/]
     src --> services[services/]
     src --> utils[utils/]
     src --> stores[stores/]
     src --> A[App.js]
     src --> B[index.js]
-    
+
     components --> C1[AudioPlayer.js]
     components --> C2[InputForm.js]
     components --> C3[Live2DDisplay.js]
     components --> C4[DisplayWindow.js]
     components --> C5[settings/]
-    
+
     services --> D1[api.js]
     services --> D2[modelService.js]
     services --> D3[promptService.js]
-    
+
     utils --> E1[lipSync.js]
     utils --> E2[live2d.js]
     utils --> E3[windowManager.js]
-    
+
     stores --> F1[characterStore.js]
-    
+
     public --> live2d[live2d/]
 ```
 
@@ -342,14 +342,14 @@ export const calculateMouthOpenness = (timingData, currentTime) => {
       if (currentTime >= mora.start_time && currentTime <= mora.end_time) {
         // Calculate openness based on vowel type
         const openness = calculateMoraOpenness(mora.text);
-        
+
         // Animate using sine wave for natural movement
         const position = (currentTime - mora.start_time) / (mora.end_time - mora.start_time);
         return openness * Math.sin(position * Math.PI);
       }
     }
   }
-  
+
   return 0;  // Mouth closed when not speaking
 };
 ```
@@ -364,29 +364,29 @@ export const loadModel = async (modelPath, canvasElement) => {
     console.error('Canvas element is not provided');
     return;
   }
-  
+
   // Cancel any previous animation
   if (frameId) {
     cancelAnimationFrame(frameId);
     frameId = null;
   }
-  
+
   // Set up WebGL context
   canvas = canvasElement;
   gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
-  
+
   if (!gl) {
     console.error('WebGL is not supported in this browser');
     return;
   }
-  
+
   try {
     // Load model (implementation depends on Live2D SDK)
     // ...
-    
+
     // Start animation
     startAnimation();
-    
+
     return live2dModel;
   } catch (error) {
     console.error('Failed to load Live2D model:', error);
@@ -403,17 +403,17 @@ Character state is managed using React Context:
 export const CharacterProvider = ({ children }) => {
   const [characters, setCharacters] = useState(DEFAULT_CHARACTERS);
   const [activeCharacter, setActiveCharacter] = useState('tsukkomi');
-  
+
   // Change character model
   const changeCharacterModel = (character, modelId) => {
     // Implementation
   };
-  
+
   // Switch active character
   const switchActiveCharacter = (character) => {
     setActiveCharacter(character);
   };
-  
+
   return (
     <CharacterContext.Provider value={{
       characters,
@@ -447,7 +447,7 @@ export const generateManzaiScript = async (topic, useMock = false) => {
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ 
+      body: JSON.stringify({
         topic,
         use_mock: useMock
       }),
@@ -482,10 +482,10 @@ import PropTypes from 'prop-types';
 const ComponentName = ({ prop1, prop2 }) => {
   // State hooks
   const [state, setState] = useState(initialValue);
-  
+
   // Refs
   const ref = useRef(null);
-  
+
   // Effects
   useEffect(() => {
     // Side effect logic
@@ -493,12 +493,12 @@ const ComponentName = ({ prop1, prop2 }) => {
       // Cleanup logic
     };
   }, [dependencies]);
-  
+
   // Event handlers
   const handleEvent = () => {
     // Event handling logic
   };
-  
+
   // Render
   return (
     <div className="component-name">
@@ -556,13 +556,13 @@ describe('InputForm', () => {
   test('calls onSubmit with topic when form is submitted', () => {
     const handleSubmit = jest.fn();
     render(<InputForm onSubmit={handleSubmit} />);
-    
+
     const input = screen.getByPlaceholderText(/トピックを入力/i);
     const submitButton = screen.getByRole('button', { name: /生成/i });
-    
+
     fireEvent.change(input, { target: { value: 'テスト' } });
     fireEvent.click(submitButton);
-    
+
     expect(handleSubmit).toHaveBeenCalledWith('テスト');
   });
 });
@@ -611,7 +611,7 @@ Implement basic accessibility features:
 Example:
 
 ```jsx
-<button 
+<button
   onClick={handlePlayToggle}
   aria-label={isPlaying ? '停止' : '再生'}
   aria-pressed={isPlaying}
@@ -656,11 +656,11 @@ const handleGenerateScript = async () => {
   try {
     setIsGenerating(true);
     setError(null);
-    
+
     const data = await generateManzaiScript(topic);
     setScript(data.script);
     setAudioData(data.audio_data || []);
-    
+
   } catch (error) {
     console.error('Error generating script:', error);
     setError('スクリプト生成中にエラーが発生しました。もう一度お試しください。');
@@ -689,8 +689,8 @@ Use feature detection rather than browser detection:
 const hasWebGL = () => {
   try {
     const canvas = document.createElement('canvas');
-    return !!(window.WebGLRenderingContext && 
-              (canvas.getContext('webgl') || 
+    return !!(window.WebGLRenderingContext &&
+              (canvas.getContext('webgl') ||
                canvas.getContext('experimental-webgl')));
   } catch (e) {
     return false;

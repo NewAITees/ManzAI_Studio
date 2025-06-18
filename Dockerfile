@@ -40,4 +40,4 @@ ENV OLLAMA_MODEL=llama2
 EXPOSE 5000
 
 # Run the application using gunicorn
-CMD ["poetry", "run", "gunicorn", "--bind", "0.0.0.0:5000", "src.app:app"] 
+CMD ["poetry", "run", "gunicorn", "--bind", "0.0.0.0:5000", "src.app:app"]

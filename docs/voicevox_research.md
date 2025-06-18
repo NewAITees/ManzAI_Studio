@@ -1,20 +1,20 @@
 主要ポイント
-VoiceVoxを外部ライブラリとして使用し、サーバーをコード内で起動してAPIを通じて利用する方法は可能ですが、設定がやや複雑です。  
-研究では、subprocessモジュールでvoicevox-binを起動し、pyvoicevoxライブラリでAPIを呼び出す方法が一般的とされています。  
+VoiceVoxを外部ライブラリとして使用し、サーバーをコード内で起動してAPIを通じて利用する方法は可能ですが、設定がやや複雑です。
+研究では、subprocessモジュールでvoicevox-binを起動し、pyvoicevoxライブラリでAPIを呼び出す方法が一般的とされています。
 サーバーの開始と停止を適切に管理する必要がありますが、複数のアプリケーションが同時に使用する場合に問題が生じる可能性があります。
 サーバーの起動と使用方法
 概要
 VoiceVoxのサーバーをコード内で起動し、APIを通じて利用するには、まずvoicevox-binをsubprocessで実行し、サーバーが起動するのを待機します。その後、pyvoicevoxライブラリを使ってAPIを呼び出し、音声合成を行います。Flaskアプリケーションでは、サーバーをアプリ起動時に開始し、終了時に停止するのが効率的です。
-手順  
-サーバーの状態確認: http://localhost:50021/versionにGETリクエストを送り、サーバーがすでに動作しているか確認します。  
-サーバーの起動: 動作していない場合、voicevox-bin --device cpu --port 50021をsubprocessで実行し、起動メッセージ（例: "Starting server on"）が出力されるまで待ちます。  
-環境変数の設定: VOICEVOX_HOSTを'localhost'、VOICEVOX_PORTを50021に設定し、pyvoicevoxをインポートします。  
-APIの利用: pyvoicevoxのVoiceVoxクラスを使って、スピーカー一覧の取得や音声合成を行います。  
+手順
+サーバーの状態確認: http://localhost:50021/versionにGETリクエストを送り、サーバーがすでに動作しているか確認します。
+サーバーの起動: 動作していない場合、voicevox-bin --device cpu --port 50021をsubprocessで実行し、起動メッセージ（例: "Starting server on"）が出力されるまで待ちます。
+環境変数の設定: VOICEVOX_HOSTを'localhost'、VOICEVOX_PORTを50021に設定し、pyvoicevoxをインポートします。
+APIの利用: pyvoicevoxのVoiceVoxクラスを使って、スピーカー一覧の取得や音声合成を行います。
 サーバーの停止: アプリケーション終了時に、起動したプロセスをterminate()で停止します。
 Flaskアプリケーションでの使用
 Flaskアプリでは、以下のようにサーバーを管理できます：
-アプリ起動時にVoiceVoxServerコンテキストマネージャーを使ってサーバーを開始。  
-例: if __name__ == '__main__': with VoiceVoxServer(): app.run()  
+アプリ起動時にVoiceVoxServerコンテキストマネージャーを使ってサーバーを開始。
+例: if __name__ == '__main__': with VoiceVoxServer(): app.run()
 これにより、アプリが終了する際にサーバーも停止します。
 予想外の詳細
 VoiceVoxの声モデルは事前にダウンロードする必要がありますが、voicevox-binが自動的にダウンロードする機能があるため、ユーザーが手動で設定する必要はありません。
@@ -40,7 +40,7 @@ URL: http://localhost:50021/version
 pyvoicevoxはVoiceVoxのAPIをPythonから簡単に呼び出すためのラッパーライブラリです。調査によると、以下の手順で使用できます：
 環境変数の設定: VoiceVoxサーバーのホストとポートを指定するため、os.environ['VOICEVOX_HOST'] = 'localhost'とos.environ['VOICEVOX_PORT'] = '50021'を設定。
 インスタンス作成: from pyvoicevox import VoiceVox; client = VoiceVox()でクライアントを作成。
-API呼び出し: 
+API呼び出し:
 スピーカー一覧取得: client.get_speakers()
 音声合成: client.synthesis("こんにちは", speaker=1)で音声データを取得。
 注意点: pyvoicevoxは環境変数をインスタンス作成時に参照するため、設定はインポート前に実行する必要があります。
@@ -52,7 +52,7 @@ process.terminate()でプロセスを終了（SIGTERMを送る）。
 6. Flaskアプリケーションでの統合
 Flaskアプリケーションでは、サーバーのライフサイクルをアプリの起動と終了に合わせるのが効率的です。調査によると：
 サーバー起動: アプリ起動時にVoiceVoxServerコンテキストマネージャーまたはtry-finallyブロックでサーバーを開始。
-例: 
+例:
 python
 if __name__ == '__main__':
     with VoiceVoxServer():

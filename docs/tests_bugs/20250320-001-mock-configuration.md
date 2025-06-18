@@ -108,4 +108,4 @@ def mock_audio_manager():
 - [unittest.mock Documentation](https://docs.python.org/3/library/unittest.mock.html)
 
 ### 関連チケット
-- なし 
+- なし

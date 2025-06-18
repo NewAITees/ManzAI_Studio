@@ -48,12 +48,12 @@ const extractVowel = (mora) => {
   if (mora in SPECIAL_MORA_OPENNESS) {
     return mora;
   }
-  
+
   // 母音の場合はそのまま返す
   if (mora in VOWEL_OPENNESS) {
     return mora;
   }
-  
+
   // 子音+母音の場合は母音を抽出
   const vowelMap = {
     'か': 'あ', 'き': 'い', 'く': 'う', 'け': 'え', 'こ': 'お',
@@ -71,7 +71,7 @@ const extractVowel = (mora) => {
     'ば': 'あ', 'び': 'い', 'ぶ': 'う', 'べ': 'え', 'ぼ': 'お',
     'ぱ': 'あ', 'ぴ': 'い', 'ぷ': 'う', 'ぺ': 'え', 'ぽ': 'お'
   };
-  
+
   return vowelMap[mora] || 'あ';  // デフォルトは'あ'
 };
 
@@ -97,7 +97,7 @@ const getConsonantType = (mora) => {
     'ば': 'b', 'び': 'b', 'ぶ': 'b', 'べ': 'b', 'ぼ': 'b',
     'ぱ': 'p', 'ぴ': 'p', 'ぷ': 'p', 'ぺ': 'p', 'ぽ': 'p'
   };
-  
+
   return consonantMap[mora] || null;
 };
 
@@ -137,31 +137,31 @@ export const calculateMouthOpenness = (timingData, currentTime) => {
   if (!timingData.accent_phrases || !Array.isArray(timingData.accent_phrases)) {
     return 0;
   }
-  
+
   // 現在の時間に該当するモーラを探す
   for (const phrase of timingData.accent_phrases) {
     if (!phrase.moras || !Array.isArray(phrase.moras)) {
       continue;
     }
-    
+
     for (let i = 0; i < phrase.moras.length; i++) {
       const mora = phrase.moras[i];
-      
+
       if (currentTime >= mora.start_time && currentTime <= mora.end_time) {
         const openness = calculateMoraOpenness(mora.text);
-        
+
         // モーラ内での位置に基づいて補間（山なりの曲線）
         const position = (currentTime - mora.start_time) / (mora.end_time - mora.start_time);
         return openness * Math.sin(position * Math.PI);
       }
-      
+
       // モーラとモーラの間の補間
       if (i < phrase.moras.length - 1) {
         const nextMora = phrase.moras[i + 1];
         if (currentTime > mora.end_time && currentTime < nextMora.start_time) {
           const openness1 = calculateMoraOpenness(mora.text);
           const openness2 = calculateMoraOpenness(nextMora.text);
-          
+
           // 線形補間
           const t = (currentTime - mora.end_time) / (nextMora.start_time - mora.end_time);
           return openness1 * (1 - t) + openness2 * t;
@@ -169,6 +169,6 @@ export const calculateMouthOpenness = (timingData, currentTime) => {
       }
     }
   }
-  
+
   return 0;  // 該当する時間が見つからない場合は0
-}; 
+};

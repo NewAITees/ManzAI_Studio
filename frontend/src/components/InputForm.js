@@ -7,12 +7,12 @@ const InputForm = ({ onSubmit, isGenerating = false }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    
+
     if (!topic.trim()) {
       setError('トピックを入力してください');
       return;
     }
-    
+
     setError('');
     onSubmit(topic);
   };
@@ -46,4 +46,4 @@ InputForm.propTypes = {
   isGenerating: PropTypes.bool
 };
 
-export default InputForm; 
+export default InputForm;

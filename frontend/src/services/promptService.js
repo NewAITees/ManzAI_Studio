@@ -68,4 +68,4 @@ export const deletePrompt = async (promptId) => {
     console.error(`Failed to delete prompt ${promptId}:`, error);
     throw error;
   }
-}; 
+};

@@ -52,4 +52,4 @@ module.exports = {
   watchOptions: {
     ignored: ['**/node_modules', '**/gdrive', '/home/persona/gdrive']
   }
-}; 
+};

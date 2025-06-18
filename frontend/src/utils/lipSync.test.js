@@ -13,10 +13,10 @@ describe('lipSync', () => {
   test('calculates correct mouth openness at a given time', () => {
     // 口が開いている時間帯
     expect(calculateMouthOpenness(mockTimingData, 120)).toBeGreaterThan(0);
-    
+
     // モーラとモーラの間（小さな値になるはず）
     expect(calculateMouthOpenness(mockTimingData, 150)).toBeLessThan(0.5);
-    
+
     // どのモーラにも該当しない時間帯
     expect(calculateMouthOpenness(mockTimingData, 300)).toBe(0);
   });
@@ -40,15 +40,15 @@ describe('lipSync', () => {
 
     // 母音は大きく開く
     expect(calculateMouthOpenness(timingData, 25)).toBeGreaterThan(0.7);
-    
+
     // 子音+母音は中程度
     expect(calculateMouthOpenness(timingData, 75)).toBeLessThan(0.7);
     expect(calculateMouthOpenness(timingData, 75)).toBeGreaterThan(0.3);
-    
+
     // 撥音は小さく開く
     expect(calculateMouthOpenness(timingData, 125)).toBeLessThan(0.3);
     expect(calculateMouthOpenness(timingData, 125)).toBeGreaterThan(0);
-    
+
     // 促音はほとんど開かない
     expect(calculateMouthOpenness(timingData, 175)).toBeLessThan(0.2);
   });
@@ -71,4 +71,4 @@ describe('lipSync', () => {
     expect(middleValue).toBeLessThan(beforeValue);
     expect(middleValue).toBeLessThan(afterValue);
   });
-}); 
+});

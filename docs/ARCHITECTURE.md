@@ -13,7 +13,7 @@ graph TD
     Backend <--> Ollama[Ollama LLM]
     Backend <--> VoiceVox[VoiceVox Engine]
     Backend <--> Storage[File Storage]
-    
+
     subgraph Local Environment
         Frontend
         Backend
@@ -49,7 +49,7 @@ sequenceDiagram
     participant Ollama
     participant VoiceVox
     participant Storage
-    
+
     User->>Frontend: Enter topic
     Frontend->>Backend: POST /api/generate
     Backend->>Ollama: Generate script
@@ -79,7 +79,7 @@ graph TD
     root --> frontend[frontend/]
     root --> docs[docs/]
     root --> tests[tests/]
-    
+
     src --> backend[backend/]
     backend --> app[app/]
     app --> models[models/]
@@ -87,7 +87,7 @@ graph TD
     app --> services[services/]
     app --> templates[templates/]
     app --> utils[utils/]
-    
+
     frontend --> src2[src/]
     frontend --> public[public/]
     public --> live2d[live2d/]
@@ -121,4 +121,3 @@ This architecture ensures complete local operation without internet dependency a
 - Support for more voice synthesis engines beyond VoiceVox
 - Consideration for WebGPU acceleration as browser support improves
 - Possible offline package distribution for simpler installation
-

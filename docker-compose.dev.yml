@@ -50,4 +50,4 @@ volumes:
   app_data:
   ollama_data:
   voicevox_data:
-  poetry_cache: 
+  poetry_cache:

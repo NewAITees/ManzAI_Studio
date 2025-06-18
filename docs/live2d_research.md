@@ -18,10 +18,10 @@ Live2Dは2Dキャラクターをリアルタイムでアニメーション化す
 ウェブアプリとの統合: FlaskはHTMLテンプレートをレンダリングするため、Live2Dのスクリプトをテンプレートに埋め込むことで実現可能です。
 2. FlaskアプリケーションでのLive2Dのセットアップ
 Flaskアプリケーションでは、Live2DのJavaScriptファイルを静的ファイルとして提供し、HTMLテンプレートで読み込みます。調査によると、以下の手順が推奨されます：
-静的ファイルの配置: 
+静的ファイルの配置:
 staticディレクトリにlive2d.min.jsとキャラクターのモデルファイル（例: model.json）を配置。
 Flaskのurl_for('static', filename='...')を使用してファイルパスを生成。
-HTMLテンプレートの作成: 
+HTMLテンプレートの作成:
 テンプレート（例: templates/index.html）にLive2Dのスクリプトを埋め込みます。
 例:
 html

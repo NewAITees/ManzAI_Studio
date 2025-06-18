@@ -21,13 +21,13 @@ describe('Live2DDisplay', () => {
 
   test('updates mouth parameter when playing audio', () => {
     render(
-      <Live2DDisplay 
+      <Live2DDisplay
         modelPath="test-model.model3.json"
-        isPlaying={true} 
+        isPlaying={true}
         mouthOpenValue={0.8}
       />
     );
-    
+
     expect(setParameter).toHaveBeenCalledWith("ParamMouthOpenY", 0.8);
   });
 
@@ -40,13 +40,13 @@ describe('Live2DDisplay', () => {
 
   test('does not update mouth parameter when not playing', () => {
     render(
-      <Live2DDisplay 
+      <Live2DDisplay
         modelPath="test-model.model3.json"
-        isPlaying={false} 
+        isPlaying={false}
         mouthOpenValue={0.8}
       />
     );
-    
+
     expect(setParameter).not.toHaveBeenCalled();
   });
-}); 
+});

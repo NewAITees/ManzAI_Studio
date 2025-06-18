@@ -15,7 +15,7 @@ export const generateManzaiScript = async (topic, useMock = false) => {
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ 
+      body: JSON.stringify({
         topic,
         use_mock: useMock  // 明示的にモック使用有無を指定
       }),
@@ -95,7 +95,7 @@ export const getTimingData = async (text, speakerId = 1) => {
     return await response.json();
   } catch (error) {
     console.error('Error fetching timing data:', error);
-    
+
     // エラー時はモックデータを返す（開発用）
     return {
       accent_phrases: [
@@ -111,4 +111,4 @@ export const getTimingData = async (text, speakerId = 1) => {
       ]
     };
   }
-}; 
+};

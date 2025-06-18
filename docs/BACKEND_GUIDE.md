@@ -14,14 +14,14 @@ graph TD
     B --> C[Data Model Layer]
     B --> D[External Services]
     B --> E[Utility Layer]
-    
+
     subgraph "Flask Application"
         A
         B
         C
         E
     end
-    
+
     subgraph "External Dependencies"
         D
     end
@@ -44,10 +44,10 @@ The service pattern is used to encapsulate business logic:
 ```python
 class OllamaService:
     """Service for interacting with Ollama LLM."""
-    
+
     def __init__(self, base_url: str, instance_type: str = "auto"):
         # Initialize service
-        
+
     def generate_manzai_script(self, topic: str, model_name: str = "gemma3:4b") -> List[ScriptLine]:
         """Generate a manzai script based on a topic."""
         # Implementation
@@ -72,7 +72,7 @@ Used for data access and persistence:
 ```python
 class PromptLoader:
     """Handles loading and managing prompt templates."""
-    
+
     def get_all_prompts(self) -> List[Dict[str, Any]]:
         """Get all available prompts."""
         # Implementation
@@ -87,21 +87,21 @@ graph TD
     root --> services[services/]
     root --> templates[templates/]
     root --> utils[utils/]
-    
+
     models --> A1[audio.py]
     models --> A2[script.py]
     models --> A3[service.py]
-    
+
     routes --> B1[api.py]
     routes --> B2[prompts.py]
     routes --> B3[models.py]
-    
+
     services --> C1[ollama_service.py]
     services --> C2[voicevox_service.py]
-    
+
     templates --> D1[manzai_prompt.txt]
     templates --> D2[prompts/]
-    
+
     utils --> E1[audio_manager.py]
     utils --> E2[error_handlers.py]
     utils --> E3[prompt_loader.py]
@@ -155,7 +155,7 @@ Business logic is implemented in the `services/` directory:
 # services/ollama_service.py
 class OllamaService:
     """Service for interacting with the Ollama LLM API."""
-    
+
     def generate_manzai_script(self, topic: str, model_name: str = "gemma3:4b") -> List[ScriptLine]:
         """Generate a manzai script based on a topic."""
         # Implementation
@@ -188,16 +188,16 @@ Use Google-style docstrings:
 ```python
 def function_name(param1: type, param2: type) -> return_type:
     """Short description.
-    
+
     Longer description if needed.
-    
+
     Args:
         param1: Description of param1
         param2: Description of param2
-        
+
     Returns:
         Description of return value
-        
+
     Raises:
         ExceptionType: When and why this exception is raised
     """
@@ -279,7 +279,7 @@ def test_generate_manzai_script_success(mock_generate, ollama_service):
             {"speaker": "B", "text": "どうも"}
         ]
     }
-    
+
     result = ollama_service.generate_manzai_script("テスト")
     assert len(result) == 2
     assert isinstance(result[0], ScriptLine)
@@ -354,7 +354,7 @@ sequenceDiagram
     participant Prompt as PromptLoader
     participant Client as OllamaClient
     participant LLM as Ollama LLM
-    
+
     API->>Service: generate_manzai_script(topic)
     Service->>Prompt: load_template("manzai_prompt", topic)
     Prompt-->>Service: formatted prompt
@@ -377,7 +377,7 @@ sequenceDiagram
     participant Client as HTTP Client
     participant VoiceVox as VoiceVox Engine
     participant Storage as AudioManager
-    
+
     API->>Service: synthesize_voice(text, speaker_id)
     Service->>Client: POST /audio_query
     Client->>VoiceVox: HTTP Request
@@ -397,7 +397,7 @@ Configuration is managed through the `Config` classes in `config.py`:
 ```python
 class BaseConfig(BaseModel):
     """Base configuration model."""
-    
+
     TESTING: bool = Field(False, description="Test mode flag")
     VOICEVOX_URL: str = Field(
         default_factory=lambda: os.getenv("VOICEVOX_URL", "http://localhost:50021"),

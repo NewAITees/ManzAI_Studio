@@ -139,13 +139,13 @@ audioElement.addEventListener("ended", () => updateMouth(0.0));
 @app.route('/generate', methods=['POST'])
 def generate_script():
     topic = request.form['topic']
-    
+
     # Generate script with Ollama
     script = generate_manzai_script(topic)
-    
+
     # Generate audio with VoiceVox
     audio_files = generate_audio(script)
-    
+
     return jsonify({
         'script': script,
         'audio_files': audio_files

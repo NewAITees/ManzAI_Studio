@@ -22,25 +22,25 @@ export const loadModel = async (modelPath, canvasElement) => {
     console.error('Canvas element is not provided');
     return;
   }
-  
+
   // キャンセル処理
   if (frameId) {
     cancelAnimationFrame(frameId);
     frameId = null;
   }
-  
+
   // キャンバスとWebGLコンテキストの設定
   canvas = canvasElement;
   gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
-  
+
   if (!gl) {
     console.error('WebGL is not supported in this browser');
     return;
   }
-  
+
   try {
     console.log(`Loading Live2D model: ${modelPath}`);
-    
+
     // 実際のLive2D SDKを使用する場合は以下のコードを使用
     // ここでは、モックとして簡易的な実装を行います
     live2dModel = {
@@ -56,14 +56,14 @@ export const loadModel = async (modelPath, canvasElement) => {
         'ParamBodyAngleZ': 0
       }
     };
-    
+
     // 初期パラメータを設定
     parameters = { ...live2dModel.parameters };
-    
+
     // モデル表示開始
     startTime = performance.now();
     startAnimation();
-    
+
     return live2dModel;
   } catch (error) {
     console.error('Failed to load Live2D model:', error);
@@ -81,13 +81,13 @@ export const setParameter = (paramId, value) => {
     console.warn('Model is not loaded yet');
     return;
   }
-  
+
   // パラメータを設定
   parameters[paramId] = value;
-  
+
   // 実際のLive2D SDKを使用する場合は以下のようなコード
   // live2dModel.setParameterValueById(paramId, value);
-  
+
   console.log(`Setting parameter ${paramId} to ${value}`);
 };
 
@@ -101,7 +101,7 @@ export const getParameter = (paramId) => {
     console.warn('Model is not loaded yet');
     return 0;
   }
-  
+
   return parameters[paramId] || 0;
 };
 
@@ -111,17 +111,17 @@ export const getParameter = (paramId) => {
 const startAnimation = () => {
   const animate = () => {
     if (!canvas || !gl || !live2dModel) return;
-    
+
     // キャンバスのサイズを更新
     updateCanvasSize();
-    
+
     // モデルの描画処理
     drawModel();
-    
+
     // 次のフレームを予約
     frameId = requestAnimationFrame(animate);
   };
-  
+
   // アニメーションの開始
   frameId = requestAnimationFrame(animate);
 };
@@ -134,7 +134,7 @@ const updateCanvasSize = () => {
   const devicePixelRatio = window.devicePixelRatio || 1;
   const width = canvas.clientWidth * devicePixelRatio;
   const height = canvas.clientHeight * devicePixelRatio;
-  
+
   if (canvas.width !== width || canvas.height !== height) {
     canvas.width = width;
     canvas.height = height;
@@ -151,19 +151,19 @@ const drawModel = () => {
   gl.enable(gl.BLEND);
   gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
   gl.clear(gl.COLOR_BUFFER_BIT);
-  
+
   // 実際のLive2D SDKを使用する場合はここにモデル描画コードを追加
   // 以下はモックのため、実際には何も描画されません
-  
+
   // 自動的に自然なまばたきアニメーションを追加
   const time = (performance.now() - startTime) / 1000;
   const blinkValue = Math.max(0, Math.cos(time * 1.5) * 0.5 + 0.5);
   parameters['ParamEyeOpenY'] = blinkValue;
-  
+
   // 呼吸アニメーション
   const breathValue = Math.sin(time * 0.5) * 0.05;
   parameters['ParamBodyAngleY'] = breathValue;
-  
+
   // Consoleにモデルの状態を出力（デバッグ用）
   // console.log('Drawing model with parameters:', parameters);
 };
@@ -176,12 +176,12 @@ export const releaseModel = () => {
     cancelAnimationFrame(frameId);
     frameId = null;
   }
-  
+
   live2dModel = null;
   canvas = null;
   gl = null;
   startTime = null;
   parameters = {};
-  
+
   console.log('Live2D model released');
-}; 
+};

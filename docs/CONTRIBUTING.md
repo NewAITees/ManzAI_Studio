@@ -76,11 +76,11 @@ graph TD
 ```python
 def function_name(param1: str, param2: int) -> bool:
     """Short description of function.
-    
+
     Args:
         param1: Description of param1
         param2: Description of param2
-        
+
     Returns:
         Description of return value
     """
@@ -98,12 +98,12 @@ def function_name(param1: str, param2: int) -> bool:
 // Good component example
 const ComponentName = ({ prop1, prop2 }) => {
   const [state, setState] = useState(initialValue);
-  
+
   // Handle some action
   const handleAction = () => {
     // Implementation
   };
-  
+
   return (
     <div className="component-name">
       {/* Component rendering */}

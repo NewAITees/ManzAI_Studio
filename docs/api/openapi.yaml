@@ -345,7 +345,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-    
+
     post:
       summary: プロンプトの作成
       description: 新しいプロンプトを作成します
@@ -553,4 +553,4 @@ components:
         error:
           type: string
           description: エラーメッセージ
-          example: "リクエストの処理中にエラーが発生しました" 
+          example: "リクエストの処理中にエラーが発生しました"

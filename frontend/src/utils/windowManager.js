@@ -9,14 +9,14 @@ export const openDisplayWindow = () => {
       postMessage: () => {}
     };
   }
-  
+
   const features = [
     'width=800',
     'height=600',
     'menubar=no',
     'toolbar=no'
   ].join(',');
-  
+
   return window.open('/display', 'ManzAI Studio Display', features);
 };
 
@@ -29,9 +29,9 @@ export const sendStateToDisplayWindow = (displayWindow, state) => {
   if (!displayWindow) {
     return;
   }
-  
+
   displayWindow.postMessage({
     type: 'STATE_UPDATE',
     payload: state
   }, '*');
-}; 
+};

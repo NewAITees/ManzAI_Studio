@@ -226,15 +226,15 @@ body {
     flex-direction: column;
     align-items: center;
   }
-  
+
   .character {
     max-width: 100%;
   }
-  
+
   .input-form {
     flex-direction: column;
   }
-  
+
   .submit-button {
     width: 100%;
   }
@@ -257,4 +257,4 @@ body {
 
 .settings-button:hover {
   background-color: rgba(255, 255, 255, 0.3);
-} 
+}

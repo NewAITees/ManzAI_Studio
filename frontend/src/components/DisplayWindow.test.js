@@ -16,11 +16,11 @@ describe('DisplayWindow', () => {
 
   test('renders in display mode without controls', () => {
     render(<DisplayWindow isDisplayMode={true} modelPath="test-model.model3.json" />);
-    
+
     // Live2Dキャンバスが表示されていることを確認
     const canvas = screen.getByTestId('live2d-canvas');
     expect(canvas).toBeInTheDocument();
-    
+
     // コントロール要素が表示されていないことを確認
     const controls = screen.queryByTestId('display-controls');
     expect(controls).not.toBeInTheDocument();
@@ -28,11 +28,11 @@ describe('DisplayWindow', () => {
 
   test('renders in control mode with controls', () => {
     render(<DisplayWindow isDisplayMode={false} modelPath="test-model.model3.json" />);
-    
+
     // Live2Dキャンバスが表示されていることを確認
     const canvas = screen.getByTestId('live2d-canvas');
     expect(canvas).toBeInTheDocument();
-    
+
     // コントロール要素が表示されていることを確認
     const controls = screen.getByTestId('display-controls');
     expect(controls).toBeInTheDocument();
@@ -40,7 +40,7 @@ describe('DisplayWindow', () => {
 
   test('applies chroma key background in display mode', () => {
     render(<DisplayWindow isDisplayMode={true} modelPath="test-model.model3.json" />);
-    
+
     const canvas = screen.getByTestId('live2d-canvas');
     expect(canvas).toHaveStyle({ backgroundColor: '#00ff00' });
   });
@@ -54,10 +54,10 @@ describe('DisplayWindow', () => {
         mouthOpenValue={0}
       />
     );
-    
+
     // 初期状態では口が動いていないことを確認
     expect(setParameter).not.toHaveBeenCalled();
-    
+
     // 再生状態に変更
     rerender(
       <DisplayWindow
@@ -67,7 +67,7 @@ describe('DisplayWindow', () => {
         mouthOpenValue={0.8}
       />
     );
-    
+
     // 口が動いていることを確認
     expect(setParameter).toHaveBeenCalledWith("ParamMouthOpenY", 0.8);
   });
@@ -76,4 +76,4 @@ describe('DisplayWindow', () => {
     render(<DisplayWindow isDisplayMode={true} modelPath="test-model.model3.json" />);
     expect(loadModel).toHaveBeenCalledWith("test-model.model3.json");
   });
-}); 
+});

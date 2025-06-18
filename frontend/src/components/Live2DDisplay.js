@@ -65,4 +65,4 @@ Live2DDisplay.propTypes = {
   mouthOpenValue: PropTypes.number
 };
 
-export default Live2DDisplay; 
+export default Live2DDisplay;

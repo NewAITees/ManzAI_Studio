@@ -6,14 +6,14 @@ const ModelManager = () => {
   const [models, setModels] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
-  
-  const { 
-    characters, 
-    activeCharacter, 
-    changeCharacterModel, 
-    switchActiveCharacter 
+
+  const {
+    characters,
+    activeCharacter,
+    changeCharacterModel,
+    switchActiveCharacter
   } = useCharacters();
-  
+
   // モデル一覧を取得
   useEffect(() => {
     const fetchModels = async () => {
@@ -29,22 +29,22 @@ const ModelManager = () => {
         setIsLoading(false);
       }
     };
-    
+
     fetchModels();
   }, []);
-  
+
   // キャラクターの種類によるモデルフィルタリング
   const filteredModels = models.filter(model => {
     // タイプが指定されていない場合は両方に表示
     if (!model.type || model.type === 'unknown') return true;
-    
+
     return model.type === activeCharacter;
   });
-  
+
   return (
     <div className="model-manager">
       <h2>キャラクターモデル設定</h2>
-      
+
       <div className="character-tabs">
         <button
           className={`character-tab ${activeCharacter === 'tsukkomi' ? 'active' : ''}`}
@@ -59,7 +59,7 @@ const ModelManager = () => {
           ボケ役
         </button>
       </div>
-      
+
       <div className="current-model">
         <h3>現在のモデル</h3>
         <div className="model-info">
@@ -71,7 +71,7 @@ const ModelManager = () => {
           </div>
         </div>
       </div>
-      
+
       {isLoading ? (
         <div className="loading">モデルを読み込み中...</div>
       ) : error ? (
@@ -80,7 +80,7 @@ const ModelManager = () => {
         <div className="models-grid">
           {filteredModels.length > 0 ? (
             filteredModels.map(model => (
-              <div 
+              <div
                 key={model.id}
                 className={`model-card ${characters[activeCharacter].id === model.id ? 'selected' : ''}`}
                 onClick={() => changeCharacterModel(activeCharacter, model.id)}
@@ -105,7 +105,7 @@ const ModelManager = () => {
           )}
         </div>
       )}
-      
+
       <div className="model-upload">
         <h3>モデルを追加</h3>
         <p>
@@ -117,12 +117,12 @@ const ModelManager = () => {
           詳細は <a href="https://github.com/yourusername/manzai-studio/blob/main/docs/model_setup.md" target="_blank" rel="noreferrer">モデル設定ガイド</a> を参照してください。
         </p>
       </div>
-      
+
       <style jsx>{`
         .model-manager {
           margin-top: 20px;
         }
-        
+
         .character-tabs {
           display: flex;
           margin-bottom: 20px;
@@ -130,7 +130,7 @@ const ModelManager = () => {
           border-radius: 5px;
           overflow: hidden;
         }
-        
+
         .character-tab {
           flex: 1;
           padding: 10px 15px;
@@ -140,13 +140,13 @@ const ModelManager = () => {
           font-size: 16px;
           transition: background-color 0.2s;
         }
-        
+
         .character-tab.active {
           background-color: #1890ff;
           color: white;
           font-weight: bold;
         }
-        
+
         .current-model {
           background-color: #f9f9f9;
           border: 1px solid #ddd;
@@ -154,34 +154,34 @@ const ModelManager = () => {
           padding: 15px;
           margin-bottom: 20px;
         }
-        
+
         .current-model h3 {
           margin-top: 0;
           margin-bottom: 10px;
         }
-        
+
         .model-info {
           display: flex;
           flex-direction: column;
         }
-        
+
         .model-name {
           font-size: 18px;
           font-weight: bold;
         }
-        
+
         .model-path {
           font-size: 14px;
           color: #666;
           margin-top: 5px;
         }
-        
+
         .loading {
           text-align: center;
           padding: 20px;
           color: #666;
         }
-        
+
         .error-message {
           background-color: #fff2f0;
           border: 1px solid #ffccc7;
@@ -190,14 +190,14 @@ const ModelManager = () => {
           border-radius: 4px;
           margin-bottom: 20px;
         }
-        
+
         .models-grid {
           display: grid;
           grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
           gap: 15px;
           margin-bottom: 20px;
         }
-        
+
         .model-card {
           border: 1px solid #ddd;
           border-radius: 5px;
@@ -205,17 +205,17 @@ const ModelManager = () => {
           transition: transform 0.2s, box-shadow 0.2s;
           cursor: pointer;
         }
-        
+
         .model-card:hover {
           transform: translateY(-5px);
           box-shadow: 0 5px 10px rgba(0, 0, 0, 0.1);
         }
-        
+
         .model-card.selected {
           border-color: #1890ff;
           box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
         }
-        
+
         .model-image {
           height: 150px;
           background-color: #f0f0f0;
@@ -223,31 +223,31 @@ const ModelManager = () => {
           align-items: center;
           justify-content: center;
         }
-        
+
         .model-image img {
           width: 100%;
           height: 100%;
           object-fit: cover;
         }
-        
+
         .no-image {
           color: #999;
           font-size: 14px;
         }
-        
+
         .model-card-info {
           padding: 10px;
         }
-        
+
         .model-card-info h4 {
           margin: 0 0 5px 0;
         }
-        
+
         .model-id {
           font-size: 12px;
           color: #666;
         }
-        
+
         .no-models {
           grid-column: 1 / -1;
           padding: 30px;
@@ -256,7 +256,7 @@ const ModelManager = () => {
           border: 1px dashed #ddd;
           border-radius: 5px;
         }
-        
+
         .model-upload {
           margin-top: 30px;
           background-color: #f9f9f9;
@@ -264,23 +264,23 @@ const ModelManager = () => {
           border-radius: 5px;
           padding: 15px;
         }
-        
+
         .model-upload h3 {
           margin-top: 0;
         }
-        
+
         .model-upload code {
           background-color: #f0f0f0;
           padding: 2px 5px;
           border-radius: 3px;
           font-family: monospace;
         }
-        
+
         .model-upload a {
           color: #1890ff;
           text-decoration: none;
         }
-        
+
         .model-upload a:hover {
           text-decoration: underline;
         }
@@ -289,4 +289,4 @@ const ModelManager = () => {
   );
 };
 
-export default ModelManager; 
+export default ModelManager;

@@ -12,36 +12,36 @@ describe('InputForm', () => {
   test('calls onSubmit with topic when form is submitted', async () => {
     const handleSubmit = jest.fn();
     render(<InputForm onSubmit={handleSubmit} />);
-    
+
     const input = screen.getByPlaceholderText(/トピックを入力/i);
     await act(async () => {
       await userEvent.type(input, 'テスト漫才');
     });
-    
+
     const submitButton = screen.getByRole('button', { name: /生成/i });
     await act(async () => {
       await userEvent.click(submitButton);
     });
-    
+
     expect(handleSubmit).toHaveBeenCalledWith('テスト漫才');
   });
 
   test('shows error when submitting empty topic', async () => {
     render(<InputForm onSubmit={() => {}} />);
-    
+
     const submitButton = screen.getByRole('button', { name: /生成/i });
     await act(async () => {
       await userEvent.click(submitButton);
     });
-    
+
     const errorMessage = screen.getByText(/トピックを入力してください/i);
     expect(errorMessage).toBeInTheDocument();
   });
 
   test('disables submit button while generating', () => {
     render(<InputForm onSubmit={() => {}} isGenerating={true} />);
-    
+
     const submitButton = screen.getByRole('button', { name: /生成中/i });
     expect(submitButton).toBeDisabled();
   });
-}); 
+});

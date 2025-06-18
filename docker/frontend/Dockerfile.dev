@@ -13,4 +13,4 @@ ENV NODE_ENV=development
 EXPOSE 3000
 
 # 開発サーバー起動
-CMD ["npm", "start"] 
+CMD ["npm", "start"]

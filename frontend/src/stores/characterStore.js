@@ -30,24 +30,24 @@ export const CharacterProvider = ({ children }) => {
   const [characters, setCharacters] = useState(DEFAULT_CHARACTERS);
   const [activeCharacter, setActiveCharacter] = useState('tsukkomi');
   const [loading, setLoading] = useState(true);
-  
+
   // 初期化時にローカルストレージから設定を読み込む
   useEffect(() => {
     const loadCharacters = async () => {
       try {
         // ローカルストレージから設定を読み込み
         const savedCharacters = localStorage.getItem('characters');
-        
+
         if (savedCharacters) {
           setCharacters(JSON.parse(savedCharacters));
         } else {
           // デフォルト設定を使用
           // 利用可能なモデルを取得して設定
           const models = await getLive2DModels();
-          
+
           if (models.length > 0) {
             const updatedCharacters = { ...DEFAULT_CHARACTERS };
-            
+
             // ツッコミ役のモデルを探す
             const tsukkomiModel = models.find(model => model.type === 'tsukkomi') || models[0];
             if (tsukkomiModel) {
@@ -58,9 +58,9 @@ export const CharacterProvider = ({ children }) => {
                 modelPath: tsukkomiModel.path
               };
             }
-            
+
             // ボケ役のモデルを探す
-            const bokeModel = models.find(model => model.type === 'boke') || 
+            const bokeModel = models.find(model => model.type === 'boke') ||
               (models.length > 1 ? models[1] : models[0]);
             if (bokeModel) {
               updatedCharacters.boke = {
@@ -70,7 +70,7 @@ export const CharacterProvider = ({ children }) => {
                 modelPath: bokeModel.path
               };
             }
-            
+
             setCharacters(updatedCharacters);
             localStorage.setItem('characters', JSON.stringify(updatedCharacters));
           }
@@ -81,16 +81,16 @@ export const CharacterProvider = ({ children }) => {
         setLoading(false);
       }
     };
-    
+
     loadCharacters();
   }, []);
-  
+
   // キャラクターのモデルを変更
   const changeCharacterModel = (character, modelId) => {
     // モデル情報を取得する処理（非同期で行う）
     getLive2DModels().then(models => {
       const model = models.find(m => m.id === modelId);
-      
+
       if (model) {
         const updatedCharacters = {
           ...characters,
@@ -101,18 +101,18 @@ export const CharacterProvider = ({ children }) => {
             modelPath: model.path
           }
         };
-        
+
         setCharacters(updatedCharacters);
         localStorage.setItem('characters', JSON.stringify(updatedCharacters));
       }
     });
   };
-  
+
   // アクティブなキャラクターを切り替え
   const switchActiveCharacter = (character) => {
     setActiveCharacter(character);
   };
-  
+
   return (
     <CharacterContext.Provider value={{
       characters,
@@ -131,10 +131,10 @@ export const CharacterProvider = ({ children }) => {
  */
 export const useCharacters = () => {
   const context = useContext(CharacterContext);
-  
+
   if (!context) {
     throw new Error('useCharacters must be used within a CharacterProvider');
   }
-  
+
   return context;
-}; 
+};

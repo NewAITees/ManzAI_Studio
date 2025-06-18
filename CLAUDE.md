@@ -4,7 +4,60 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-ManzAI Studio is a web application that generates and performs manzai (Japanese comedy) scripts using local LLMs and voice synthesis. It features Live2D character animations synchronized with audio, running entirely locally without internet dependency.
+**ManzAI Studio** is a web application that generates and performs manzai (Japanese comedy) scripts using local LLMs and voice synthesis. It features Live2D character animations synchronized with audio, running entirely locally without internet dependency.
+
+**Purpose**: Create an entertainment application that combines AI-powered script generation with Live2D animation and Japanese voice synthesis for immersive manzai comedy experiences.
+
+**Team**: Multi-language development (Python backend, React frontend, Docker containerization)
+
+## Technology Stack
+
+**Backend**:
+- **Python 3.10+** with Flask web framework
+- **Pydantic 2.0+** for data validation and serialization
+- **Poetry** for dependency management (transitioning to uv)
+- **pytest** with coverage for testing
+- **MyPy** for strict type checking
+- **Black + isort** for code formatting
+
+**Frontend**:
+- **React 18.2** with functional components
+- **Webpack 5** custom configuration
+- **Jest + React Testing Library** for testing
+- **Live2D SDK** for character animation
+- **Axios** for API communication
+
+**External Services**:
+- **Ollama** (local LLM server, default: gemma3:4b)
+- **VoiceVox** (Japanese TTS engine)
+- **Docker + Docker Compose** for containerization
+
+## Domain Knowledge
+
+### Business Rules
+- Scripts generated based on user-provided topics with manzai format (boke/tsukkomi roles)
+- Audio generation synchronized with Live2D character mouth movements
+- All processing happens locally - no internet dependency after setup
+- Multiple Live2D models supported (Haru, Bambas2, Neko_Army)
+- Custom prompt templates allow script generation customization
+
+### Data Models
+```python
+# Key data structures from src/backend/app/models/
+class ScriptModel(BaseModel):
+    boke_lines: List[str]
+    tsukkomi_lines: List[str]
+    topic: str
+
+class AudioModel(BaseModel):
+    file_path: str
+    character: str
+    text: str
+
+class ServiceModel(BaseModel):
+    status: str
+    message: str
+```
 
 ## Development Commands
 
@@ -13,14 +66,14 @@ ManzAI Studio is a web application that generates and performs manzai (Japanese 
 # Start development environment with hot reload
 make dev
 
-# Start production environment  
+# Start production environment
 make prod
 
 # Run backend tests
 make test
 
-# View logs
-make logs
+# View logs (backend specific)
+make backend-logs
 
 # Clean up containers and volumes
 make clean
@@ -29,112 +82,149 @@ make clean
 make rebuild
 ```
 
-### Backend Development (Poetry)
+### Backend Development
 ```bash
-# Start Flask development server
-poetry run start
-
-# Run tests with coverage
-poetry run test
-poetry run coverage
-
-# Code quality tools
+# Poetry commands (current)
+poetry run start       # Start Flask server
+poetry run test        # Run pytest with coverage
 poetry run lint        # Flake8 linting
-poetry run format     # Black code formatting  
-poetry run type-check # MyPy type checking
+poetry run format      # Black formatting
+poetry run type-check  # MyPy type checking
+
+# UV commands (modern approach)
+uv run start          # Start Flask server
+uv run pytest        # Run tests
+uv run ruff check     # Modern linting
+uv run ruff format    # Modern formatting
+uv run mypy src/      # Type checking
 ```
 
 ### Frontend Development
 ```bash
 cd frontend/
 
-# Start development server with hot reload
+# Development server with hot reload
 npm run start
 
-# Build for production
+# Production build
 npm run build
 
-# Run tests
-npm test
-npm run test:watch     # Watch mode
-npm run test:coverage  # With coverage
+# Testing
+npm test              # Run Jest tests
+npm run test:watch    # Watch mode
+npm run test:coverage # With coverage report
 ```
 
 ## Architecture Overview
 
-**Backend Structure:**
-- `src/backend/app/` - Flask application root
-- `src/backend/app/models/` - Pydantic data models (AudioModel, ScriptModel, ServiceModel)
-- `src/backend/app/routes/` - API endpoints (main blueprint)
-- `src/backend/app/services/` - Business logic (OllamaService, VoiceVoxService, AudioManager)
-- `src/backend/app/templates/` - AI prompt templates for script generation
-- `src/backend/app/utils/` - Helper functions and utilities
-- `src/backend/app/config.py` - Application configuration management
+**Backend Structure (`src/backend/app/`)**:
+- `models/` - Pydantic data models (AudioModel, ScriptModel, ServiceModel)
+- `routes/` - Flask API blueprints (api.py, models.py, prompts.py)
+- `services/` - Business logic (OllamaService, VoiceVoxService, AudioManager)
+- `templates/` - AI prompt templates for manzai script generation
+- `utils/` - Helper functions (error handlers, validators, prompt loaders)
+- `config.py` - Application configuration management
 
-**Frontend Structure:**
-- `frontend/src/components/` - React components (InputForm, DisplayWindow, AudioPlayer, Settings)
-- `frontend/src/services/` - API communication services
-- `frontend/src/stores/` - State management (character store)  
-- `frontend/src/utils/` - Utilities (lip sync, Live2D integration, window management)
+**Frontend Structure (`frontend/src/`)**:
+- `components/` - React components (InputForm, DisplayWindow, AudioPlayer, Settings)
+- `services/` - API communication and business logic
+- `stores/` - State management (character store)
+- `utils/` - Utilities (lip sync, Live2D integration, window management)
 
-**External Services Integration:**
-- **Ollama**: Local LLM server (default model: gemma3:4b) for script generation
-- **VoiceVox**: Japanese TTS engine for voice synthesis
-- **Live2D**: Character animation system with audio synchronization
+**Live2D Integration**:
+- Models stored in `frontend/public/live2d/models/`
+- Character animation synchronized with audio playback
+- Lip sync calculations based on audio waveform analysis
 
 ## Key Configuration Files
 
-- `pyproject.toml` - Poetry dependencies, code quality tools (Black, MyPy, Flake8), test configuration
-- `frontend/package.json` - React app dependencies and scripts
+- `pyproject.toml` - Poetry dependencies, Black/MyPy/pytest configuration
+- `mypy.ini` - Strict type checking rules (disallow_untyped_defs=true)
+- `frontend/package.json` - React dependencies and build scripts
+- `frontend/webpack.config.js` - Custom Webpack configuration with dev proxy
 - `docker-compose.yml` / `docker-compose.dev.yml` - Container orchestration
-- `src/backend/app/config.py` - Runtime configuration management
-- `mypy.ini` - Strict type checking configuration
+- `src/backend/app/config.py` - Runtime configuration for services
 
 ## Testing Strategy
 
-**Backend Testing:**
-- Framework: pytest with fixtures in `tests/conftest.py`
-- Test categories: unit, integration, service, API tests
-- Run via: `tests/run_tests.py` or `poetry run test`
-- Coverage reporting enabled by default
+**Backend Testing**:
+- **Framework**: pytest with fixtures in `tests/conftest.py`
+- **Categories**: Unit, integration, service, API tests via `tests/run_tests.py`
+- **Coverage**: Enabled by default with `--cov=src`
+- **Mocking**: External services (Ollama, VoiceVox) mocked for reliable testing
 
-**Frontend Testing:**
-- Framework: Jest with React Testing Library
-- Configuration: `frontend/jest.config.js`
-- jsdom environment for DOM testing
+**Frontend Testing**:
+- **Framework**: Jest with React Testing Library
+- **Environment**: jsdom for DOM testing
+- **Configuration**: `frontend/jest.config.js`
+- **Setup**: `frontend/src/setupTests.js`
 
 ## Development Guidelines
 
-**Code Style:**
-- Backend: Black formatting (100 char line length), isort import sorting
-- MyPy strict type checking enforced
-- Flake8 linting for code quality
+**Python Code Style**:
+- **Formatting**: Black (100 char line length), isort for imports
+- **Type Checking**: Strict MyPy configuration enforced
+- **Linting**: Flake8 (transitioning to ruff)
+- **Docstrings**: Google style documentation required
 
-**API Development:**
-- RESTful API design with Flask blueprints
+**API Development**:
+- RESTful design with Flask blueprints
 - Pydantic models for request/response validation
-- Error handling with structured responses
+- Structured error handling with custom exceptions
 - CORS enabled for frontend communication
 
-**Frontend Development:**
-- React 18.2 with functional components
-- Webpack 5 custom configuration with dev server proxy
-- Axios for API communication
-- Component-based architecture with clear separation of concerns
+**Frontend Development**:
+- Functional React components with hooks
+- Component-based architecture with clear separation
+- Webpack dev server proxies API calls to Flask backend
+- State management via React Context (character store)
 
-## Local Development Setup
+## Local Development Workflow
 
-The application runs entirely locally with no internet dependency after initial setup:
+**Initial Setup**:
+1. Clone repository and ensure Docker is running
+2. Use `make dev` for containerized development (recommended)
+3. Or manual setup: `poetry install` + `cd frontend && npm install`
 
-1. **Containerized Development**: Full Docker setup with hot reloading for both backend and frontend
-2. **Service Dependencies**: Ollama and VoiceVox automatically configured via Docker
-3. **Volume Mounting**: Source code mounted for live development
-4. **Proxy Configuration**: Webpack dev server proxies API calls to Flask backend
+**Development Cycle**:
+1. Backend changes automatically reload in dev container
+2. Frontend changes hot-reload via Webpack dev server
+3. API calls proxied from frontend:3000 to backend:5000
+4. Live2D models and audio files mounted as volumes
 
-## Important Notes
+**Service Dependencies**:
+- Ollama server automatically starts with backend container
+- VoiceVox engine configured in docker-compose
+- No internet required after initial model downloads
 
-- All processing happens locally - no external API calls during runtime
-- Live2D models and animations are synchronized with generated audio
-- Template-based prompt system allows customization of AI generation
-- Comprehensive error handling across all layers
-- File storage for generated audio in `/audio/` directory
+## Common Development Tasks
+
+**Adding New API Endpoints**:
+1. Add route to `src/backend/app/routes/api.py`
+2. Create Pydantic models in `src/backend/app/models/`
+3. Implement business logic in `src/backend/app/services/`
+4. Add tests in `tests/test_api.py`
+
+**Adding New React Components**:
+1. Create component in `frontend/src/components/`
+2. Add corresponding test file (*.test.js)
+3. Update parent components to integrate
+4. Test with `npm test`
+
+**Adding New Live2D Models**:
+1. Place model files in `frontend/public/live2d/models/[ModelName]/`
+2. Update model metadata with `scripts/create_model_metadata.js`
+3. Register in character store (`frontend/src/stores/characterStore.js`)
+
+## Troubleshooting
+
+**Common Issues**:
+- Port conflicts: Check Docker containers with `docker ps`
+- Model loading failures: Verify Live2D model file structure
+- Audio sync issues: Check VoiceVox service status in logs
+- Build failures: Clear node_modules and reinstall dependencies
+
+**Debug Commands**:
+- Backend logs: `make backend-logs`
+- Test debugging: Use `tests/run_tests.py` with verbose flags
+- Frontend debugging: Check browser console for React errors

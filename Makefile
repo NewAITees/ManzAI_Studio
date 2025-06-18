@@ -44,4 +44,4 @@ rebuild:
 
 # バックエンドログの表示
 backend-logs:
-	docker-compose logs -f backend 
+	docker-compose logs -f backend

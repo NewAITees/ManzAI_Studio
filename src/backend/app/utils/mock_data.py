@@ -1,10 +1,11 @@
 """
 モックデータを提供するユーティリティモジュール
 """
-import logging
-from typing import List, Dict, Any, Optional
 
-from src.models.script import ScriptLine, ManzaiScript, Role
+import logging
+from typing import Dict, List, Optional
+
+from src.models.script import ManzaiScript, Role, ScriptLine
 
 # ロガーの設定
 logger = logging.getLogger(__name__)
@@ -27,7 +28,7 @@ DEFAULT_MOCK_SCRIPT = [
     ScriptLine(role=Role.BOKE, text="もちろん！家のお風呂に入浴剤入れたよ！"),
     ScriptLine(role=Role.TSUKKOMI, text="だからそれは温泉じゃないって！"),
     ScriptLine(role=Role.BOKE, text="でもパッケージに「温泉気分」って書いてあったよ？"),
-    ScriptLine(role=Role.TSUKKOMI, text="気分だけだろ！実際の温泉とは全然違うわ！")
+    ScriptLine(role=Role.TSUKKOMI, text="気分だけだろ！実際の温泉とは全然違うわ！"),
 ]
 
 # APIレスポンス用の辞書形式に変換したモックスクリプト
@@ -48,33 +49,35 @@ DEFAULT_MOCK_SCRIPT_DICT = [
     {"role": "boke", "text": "もちろん！家のお風呂に入浴剤入れたよ！"},
     {"role": "tsukkomi", "text": "だからそれは温泉じゃないって！"},
     {"role": "boke", "text": "でもパッケージに「温泉気分」って書いてあったよ？"},
-    {"role": "tsukkomi", "text": "気分だけだろ！実際の温泉とは全然違うわ！"}
+    {"role": "tsukkomi", "text": "気分だけだろ！実際の温泉とは全然違うわ！"},
 ]
+
 
 def get_mock_script(topic: Optional[str] = None) -> List[Dict[str, str]]:
     """
     指定されたトピックに基づいたモックスクリプトを取得します。
     現在はトピックに関係なく同じスクリプトを返します。
-    
+
     Args:
         topic: スクリプトのトピック（現在は無視される）
-        
+
     Returns:
         モックスクリプトの配列
     """
     logger.info(f"Returning mock script for topic: {topic}")
     return DEFAULT_MOCK_SCRIPT_DICT
 
+
 def get_mock_script_model(topic: Optional[str] = None) -> ManzaiScript:
     """
     指定されたトピックに基づいたモックスクリプトをPydanticモデルとして取得します。
     現在はトピックに関係なく同じスクリプトを返します。
-    
+
     Args:
         topic: スクリプトのトピック（現在は無視される）
-        
+
     Returns:
         ManzaiScript: Pydanticモデルとしてのモックスクリプト
     """
     logger.info(f"Returning mock script model for topic: {topic}")
-    return ManzaiScript(script=DEFAULT_MOCK_SCRIPT, topic=topic) 
+    return ManzaiScript(script=DEFAULT_MOCK_SCRIPT, topic=topic)

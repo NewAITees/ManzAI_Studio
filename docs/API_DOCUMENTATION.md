@@ -28,19 +28,19 @@ graph TD
     API --> Audio[Voice Synthesis]
     API --> Models[Model Management]
     API --> Prompts[Prompt Management]
-    
+
     System --> HealthCheck[Health Check]
     System --> Status[Status Information]
-    
+
     Script --> Generate[Generate Script]
-    
+
     Audio --> Synthesize[Synthesize Text]
     Audio --> Audio[Audio Files]
     Audio --> Speakers[Speaker List]
-    
+
     Models --> ListModels[List Models]
     Models --> RegisterModel[Register Model]
-    
+
     Prompts --> ListPrompts[List Prompts]
     Prompts --> GetPrompt[Get Prompt]
     Prompts --> CreatePrompt[Create Prompt]
@@ -122,7 +122,7 @@ Generate a manzai script based on a topic.
       "audio_file": "/api/audio/20250321_1.wav"
     },
     {
-      "role": "boke", 
+      "role": "boke",
       "text": "僕、新しいの買ったんですよー！",
       "audio_file": "/api/audio/20250321_2.wav"
     }

@@ -16,7 +16,7 @@ const DisplayWindow = ({
         isPlaying={isPlaying}
         mouthOpenValue={mouthOpenValue}
       />
-      
+
       {!isDisplayMode && (
         <div className="display-controls" data-testid="display-controls">
           <button
@@ -39,4 +39,4 @@ DisplayWindow.propTypes = {
   onOpenDisplayWindow: PropTypes.func
 };
 
-export default DisplayWindow; 
+export default DisplayWindow;

@@ -26,12 +26,12 @@ describe('AudioPlayer', () => {
 
   test('changes to pause button when playing', async () => {
     render(<AudioPlayer audioData={mockAudioData} onPlayStateChange={() => {}} />);
-    
+
     const playButton = screen.getByRole('button', { name: /再生/i });
     await act(async () => {
       await userEvent.click(playButton);
     });
-    
+
     const pauseButton = screen.getByRole('button', { name: /停止/i });
     expect(pauseButton).toBeInTheDocument();
   });
@@ -39,28 +39,28 @@ describe('AudioPlayer', () => {
   test('calls onPlayStateChange when play state changes', async () => {
     const handlePlayStateChange = jest.fn();
     render(<AudioPlayer audioData={mockAudioData} onPlayStateChange={handlePlayStateChange} />);
-    
+
     const playButton = screen.getByRole('button', { name: /再生/i });
     await act(async () => {
       await userEvent.click(playButton);
     });
-    
+
     expect(handlePlayStateChange).toHaveBeenCalledWith(true);
-    
+
     const pauseButton = screen.getByRole('button', { name: /停止/i });
     await act(async () => {
       await userEvent.click(pauseButton);
     });
-    
+
     expect(handlePlayStateChange).toHaveBeenCalledWith(false);
   });
 
   test('loads audio files when provided', () => {
     render(<AudioPlayer audioData={mockAudioData} onPlayStateChange={() => {}} />);
-    
+
     const audioElements = screen.getAllByTestId('audio-element');
     expect(audioElements).toHaveLength(mockAudioData.length);
-    
+
     audioElements.forEach((audio, index) => {
       expect(audio).toHaveAttribute('src', mockAudioData[index].audio_path);
     });
@@ -68,8 +68,8 @@ describe('AudioPlayer', () => {
 
   test('handles empty audio data', () => {
     render(<AudioPlayer audioData={[]} onPlayStateChange={() => {}} />);
-    
+
     const playButton = screen.getByRole('button', { name: /再生/i });
     expect(playButton).toBeDisabled();
   });
-}); 
+});
