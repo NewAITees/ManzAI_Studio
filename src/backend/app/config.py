@@ -21,6 +21,10 @@ class BaseConfig(BaseModel):
         default_factory=lambda: os.getenv("OLLAMA_MODEL", "phi"),
         description="OllamaのデフォルトモデルID",
     )
+    AUDIO_OUTPUT_DIR: str = Field(
+        default_factory=lambda: os.getenv("AUDIO_OUTPUT_DIR", "./audio"),
+        description="音声ファイル出力ディレクトリ",
+    )
 
     model_config = {
         "env_prefix": "",  # 環境変数の接頭辞（なし）
