@@ -262,8 +262,8 @@ def test_real_error_handling(client):
 def test_config_defaults():
     """Test that configuration has sensible defaults."""
     config = Config()
-    assert hasattr(config, "OLLAMA_BASE_URL")
-    assert hasattr(config, "VOICEVOX_BASE_URL")
+    assert hasattr(config, "OLLAMA_URL")
+    assert hasattr(config, "VOICEVOX_URL")
     assert hasattr(config, "AUDIO_OUTPUT_DIR")
 
 

@@ -192,23 +192,38 @@ def mock_prompt_loader():
     return mock_loader
 
 
-def test_check_availability(ollama_service, mock_ollama_client):
+def test_check_availability(ollama_service):
     """Test check_availability method."""
-    result = ollama_service.check_availability()
-    assert result["available"] is True
-    assert "models" in result
-    assert "gemma3:4b" in result["models"]
-    assert result["error"] is None
-    mock_ollama_client.check_ollama_availability.assert_called_once()
+    # Mock the client's check_ollama_availability method
+    with patch.object(ollama_service.client, "check_ollama_availability") as mock_check:
+        mock_check.return_value = {
+            "available": True,
+            "models": ["gemma3:4b", "llama2"],
+            "error": None,
+        }
+        result = ollama_service.check_availability()
+        assert result["available"] is True
+        assert "models" in result
+        assert "gemma3:4b" in result["models"]
+        assert result["error"] is None
+        mock_check.assert_called_once()
 
 
-def test_get_detailed_status(ollama_service, mock_ollama_client):
+def test_get_detailed_status(ollama_service):
     """Test get_detailed_status method."""
-    result = ollama_service.get_detailed_status()
-    assert result["available"] is True
-    assert "models" in result
-    assert result["api_version"] == "0.1.0"
-    mock_ollama_client.get_detailed_status.assert_called_once()
+    with patch.object(ollama_service.client, "get_detailed_status") as mock_status:
+        mock_status.return_value = {
+            "available": True,
+            "models": ["gemma3:4b", "llama2"],
+            "api_version": "0.1.0",
+            "instance_type": "test",
+            "base_url": "http://test:11434",
+        }
+        result = ollama_service.get_detailed_status()
+        assert result["available"] is True
+        assert "models" in result
+        assert result["api_version"] == "0.1.0"
+        mock_status.assert_called_once()
 
 
 def test_perform_health_check(ollama_service, mock_ollama_client):

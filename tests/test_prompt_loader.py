@@ -109,7 +109,7 @@ def test_create_prompt(prompt_loader, temp_dirs):
     # Mock UUID generation for deterministic testing
     test_uuid = "123e4567-e89b-12d3-a456-426614174000"
 
-    with patch("uuid.uuid4", return_value=uuid.UUID(test_uuid)):
+    with patch("src.backend.app.utils.prompt_loader.uuid4", return_value=uuid.UUID(test_uuid)):
         # Test data
         prompt_data = {
             "name": "New Prompt",
@@ -248,7 +248,7 @@ def test_load_template_generic_error(prompt_loader, temp_dirs):
     with open(file_path, "w") as f:
         f.write("Test template")
 
-    # Patch the format method to raise an unexpected error
-    with patch.object(str, "format", side_effect=Exception("Unexpected error")):
+    # Mock the file reading to raise an exception
+    with patch("builtins.open", side_effect=Exception("Unexpected error")):
         with pytest.raises(Exception, match="プロンプトのロード中にエラーが発生しました"):
             prompt_loader.load_template("test_template")
