@@ -1,5 +1,7 @@
 import os
 from datetime import datetime
+from pathlib import Path
+from typing import List
 
 
 class AudioManager:
@@ -33,6 +35,10 @@ class AudioManager:
         if not filename:
             raise ValueError("invalid filename")
 
+        # ファイル名から.wavを削除（重複を避けるため）
+        if filename.endswith(".wav"):
+            filename = filename[:-4]
+
         # タイムスタンプを付加したファイル名を生成
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         safe_filename = f"{timestamp}_{filename}.wav"
@@ -42,7 +48,7 @@ class AudioManager:
         with open(file_path, "wb") as f:
             f.write(audio_data)
 
-        return file_path
+        return safe_filename
 
     def get_audio(self, filename: str) -> bytes:
         """指定されたファイル名の音声データを取得
@@ -68,22 +74,91 @@ class AudioManager:
         with open(file_path, "rb") as f:
             return f.read()
 
-    def cleanup_old_files(self, max_files: int = 10) -> None:
+    def cleanup_old_files(self, max_files: int = 10) -> int:
         """古い音声ファイルを削除
 
         Args:
             max_files (int): 保持する最大ファイル数
+
+        Returns:
+            int: 削除されたファイル数
         """
         # ディレクトリ内のファイル一覧を取得
-        files = os.listdir(self.audio_dir)
+        if not os.path.exists(self.audio_dir):
+            return 0
+
+        files = [f for f in os.listdir(self.audio_dir) if f.endswith(".wav")]
 
         # ファイルの作成時刻でソート
         file_paths = [os.path.join(self.audio_dir, f) for f in files]
         file_paths.sort(key=os.path.getctime, reverse=True)
 
         # 古いファイルを削除
+        deleted_count = 0
         for file_path in file_paths[max_files:]:
             try:
                 os.remove(file_path)
+                deleted_count += 1
             except OSError as e:
                 print(f"Failed to remove file {file_path}: {e}")
+
+        return deleted_count
+
+    def get_audio_file_path(self, filename: str) -> Path:
+        """音声ファイルのパスを取得
+
+        Args:
+            filename (str): ファイル名
+
+        Returns:
+            Path: ファイルのパス
+        """
+        if not filename.endswith(".wav"):
+            filename = f"{filename}.wav"
+        return Path(self.audio_dir) / filename
+
+    def get_audio_url(self, filename: str) -> str:
+        """音声ファイルのURLを取得
+
+        Args:
+            filename (str): ファイル名
+
+        Returns:
+            str: ファイルのURL
+        """
+        if not filename.endswith(".wav"):
+            filename = f"{filename}.wav"
+        return f"/api/audio/{filename}"
+
+    def list_audio_files(self) -> List[str]:
+        """音声ファイル一覧を取得
+
+        Returns:
+            List[str]: ファイル名のリスト
+        """
+        if not os.path.exists(self.audio_dir):
+            return []
+
+        files = []
+        for filename in os.listdir(self.audio_dir):
+            if filename.endswith(".wav"):
+                files.append(filename)
+
+        # 作成時刻でソート（新しいものが先）
+        file_paths = [(f, os.path.join(self.audio_dir, f)) for f in files]
+        file_paths.sort(key=lambda x: os.path.getctime(x[1]), reverse=True)
+
+        return [f[0] for f in file_paths]
+
+    def generate_filename(self, prefix: str = "audio", extension: str = "wav") -> str:
+        """一意のファイル名を生成
+
+        Args:
+            prefix (str): ファイル名のプレフィックス
+            extension (str): ファイルの拡張子
+
+        Returns:
+            str: 生成されたファイル名
+        """
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S_%f")
+        return f"{prefix}_{timestamp}.{extension}"

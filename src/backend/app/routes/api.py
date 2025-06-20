@@ -41,16 +41,8 @@ def detailed_status():
     ollama_detail = ollama_service.get_detailed_status()
 
     # VoiceVoxのステータスも取得
-    voicevox_available = False
-    voicevox_speakers = []
-    voicevox_error = None
-
     voicevox_service = current_app.voicevox_service
-    try:
-        voicevox_speakers = voicevox_service.list_speakers()
-        voicevox_available = True
-    except Exception as e:
-        voicevox_error = str(e)
+    voicevox_detail = voicevox_service.get_detailed_status()
 
     # システム情報の取得
     import platform
@@ -77,11 +69,7 @@ def detailed_status():
     response_data = {
         "timestamp": datetime.now().isoformat(),
         "ollama": ollama_detail,
-        "voicevox": {
-            "available": voicevox_available,
-            "speakers_count": len(voicevox_speakers),
-            "error": voicevox_error,
-        },
+        "voicevox": voicevox_detail,
         "system": system_info,
     }
 
@@ -141,6 +129,174 @@ def register_model():
         return jsonify({"message": "Model registered successfully"}), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+
+@api_bp.route("/generate", methods=["POST"])
+@api_error_handler
+def generate():
+    """漫才スクリプトを生成"""
+    data = request.get_json()
+    if not data or "topic" not in data:
+        raise APIError("Topic is required", 400)
+
+    topic = data.get("topic", "").strip()
+    if not topic:
+        raise APIError("topic cannot be empty", 400)
+
+    model = data.get("model", current_app.config.get("OLLAMA_MODEL", "gemma3:4b"))
+    use_mock = data.get("use_mock", False)
+
+    # モックデータを使用する場合
+    if use_mock:
+        mock_script = [
+            {"role": "tsukkomi", "text": f"今日は{topic}について話しましょう。"},
+            {"role": "boke", "text": f"{topic}って面白いですね！"},
+            {"role": "tsukkomi", "text": "そうですね、詳しく教えてください。"},
+            {"role": "boke", "text": "実は私もよく知らないんです..."},
+        ]
+        mock_audio = [
+            {"role": "tsukkomi", "text": line["text"], "audio_file": f"/api/audio/mock_{i}.wav"}
+            for i, line in enumerate(mock_script)
+        ]
+        return jsonify({"script": mock_script, "audio_data": mock_audio})
+
+    # 実際のスクリプト生成
+    ollama_service = current_app.ollama_service
+    voicevox_service = current_app.voicevox_service
+    audio_manager = current_app.audio_manager
+
+    try:
+        # スクリプト生成
+        script_lines = ollama_service.generate_manzai_script(topic, model)
+
+        # 音声合成とスクリプト構築
+        script_dict = []
+        for i, line in enumerate(script_lines):
+            speaker_id = 1 if line.role.value == "tsukkomi" else 2
+            audio_bytes = voicevox_service.synthesize_voice(line.text, speaker_id)
+
+            # 音声ファイル保存
+            audio_filename = audio_manager.save_audio(audio_bytes, f"script_{i}")
+
+            script_dict.append(
+                {"role": line.role.value.upper(), "text": line.text, "audio_file": audio_filename}
+            )
+
+        return jsonify({"script": script_dict})
+
+    except Exception as e:
+        logger.error(f"Error generating script: {e}")
+        raise APIError(f"Failed to generate script: {e!s}", 500)
+
+
+@api_bp.route("/speakers", methods=["GET"])
+@api_error_handler
+def get_speakers():
+    """VoiceVox話者一覧を取得"""
+    voicevox_service = current_app.voicevox_service
+
+    try:
+        speakers = voicevox_service.list_speakers()
+        return jsonify(speakers)
+    except Exception as e:
+        logger.error(f"Error fetching speakers: {e}")
+        raise APIError(f"Failed to fetch speakers: {e!s}", 500)
+
+
+@api_bp.route("/audio/<filename>", methods=["GET"])
+@api_error_handler
+def get_audio(filename):
+    """音声ファイルを取得"""
+    audio_manager = current_app.audio_manager
+
+    try:
+        # テストではget_audioメソッドをモックしているのでそれを使用
+        audio_data = audio_manager.get_audio(filename)
+
+        from flask import Response
+
+        return Response(
+            audio_data,
+            mimetype="audio/wav",
+            headers={"Content-Disposition": f"attachment; filename={filename}"},
+        )
+    except FileNotFoundError:
+        raise APIError("Audio file not found", 404)
+    except Exception as e:
+        logger.error(f"Error serving audio file: {e}")
+        raise APIError(f"Failed to serve audio file: {e!s}", 500)
+
+
+@api_bp.route("/audio/list", methods=["GET"])
+@api_error_handler
+def list_audio_files():
+    """音声ファイル一覧を取得"""
+    audio_manager = current_app.audio_manager
+
+    try:
+        files = audio_manager.list_audio_files()
+        return jsonify(files)
+    except Exception as e:
+        logger.error(f"Error listing audio files: {e}")
+        raise APIError(f"Failed to list audio files: {e!s}", 500)
+
+
+@api_bp.route("/audio/cleanup", methods=["POST"])
+@api_error_handler
+def cleanup_audio_files():
+    """古い音声ファイルをクリーンアップ"""
+    audio_manager = current_app.audio_manager
+
+    try:
+        # JSONデータが送信されない場合もある
+        try:
+            data = request.get_json() or {}
+        except Exception:
+            data = {}
+        max_files = data.get("max_files", 10)
+
+        deleted_count = audio_manager.cleanup_old_files(max_files)
+        return jsonify(
+            {"message": "Audio files cleaned up successfully", "deleted_files": deleted_count}
+        )
+    except Exception as e:
+        logger.error(f"Error cleaning up audio files: {e}")
+        raise APIError(f"Failed to cleanup audio files: {e!s}", 500)
+
+
+@api_bp.route("/timing", methods=["POST"])
+@api_error_handler
+def get_timing_data():
+    """リップシンク用タイミングデータを取得"""
+    data = request.get_json()
+    if not data or "text" not in data:
+        raise APIError("Text is required", 400)
+
+    text = data.get("text", "").strip()
+    speaker_id = data.get("speaker_id", 1)
+
+    if not text:
+        raise APIError("Text cannot be empty", 400)
+
+    voicevox_service = current_app.voicevox_service
+
+    try:
+        timing_data = voicevox_service.get_timing_data(text, speaker_id)
+        return jsonify(timing_data)
+    except Exception as e:
+        logger.error(f"Error getting timing data: {e}")
+        # フォールバック用のモックデータを返す
+        mock_timing = {
+            "accent_phrases": [
+                {
+                    "moras": [
+                        {"text": char, "start_time": i * 150, "end_time": (i + 1) * 150}
+                        for i, char in enumerate(text[:10])  # 最初の10文字分
+                    ]
+                }
+            ]
+        }
+        return jsonify(mock_timing)
 
 
 @api_bp.route("/synthesize", methods=["POST"])

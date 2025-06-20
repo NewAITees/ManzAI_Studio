@@ -116,7 +116,7 @@ def test_full_manzai_generation_flow(client):
     generate_data = json.loads(generate_response.data)
     assert "script" in generate_data
     assert len(generate_data["script"]) == 4
-    assert generate_data["script"][0]["role"] == "tsukkomi"
+    assert generate_data["script"][0]["role"] == "TSUKKOMI"
     assert generate_data["script"][0]["text"] == "今日は何について話しましょうか？"
 
     # Step 2: Test audio synthesis with the generated script

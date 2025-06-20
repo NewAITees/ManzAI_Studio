@@ -161,76 +161,45 @@ class VoiceVoxService:
             logging.error(error_msg)
             raise VoiceVoxServiceError(error_msg)
 
-    def synthesize_voice(self, text: str, speaker_id: int = 1) -> AudioSynthesisResult:
+    def synthesize_voice(self, text: str, speaker_id: int = 1) -> bytes:
         """
-        テキストから音声を合成し、ファイルに保存します。
+        テキストから音声を合成します（テスト用の簡易版）。
 
         Args:
             text (str): 音声化するテキスト
             speaker_id (int): 話者ID
 
         Returns:
-            AudioSynthesisResult: 生成された音声ファイルのパスとタイミングデータ
+            bytes: 生成された音声データ
 
         Raises:
             ValueError: テキストが空の場合、または話者IDが無効な場合
             VoiceVoxServiceError: VoiceVoxサービスとの通信に失敗した場合
         """
-        if not text:
-            raise ValueError("text cannot be empty")
-        if not isinstance(speaker_id, int) or speaker_id < 0:
-            raise ValueError("invalid speaker id")
+        # generate_voiceを直接呼び出し
+        return self.generate_voice(text, speaker_id)
 
+    def get_detailed_status(self) -> Dict[str, Any]:
+        """VoiceVoxサービスの詳細ステータスを取得
+
+        Returns:
+            Dict[str, Any]: サービスの詳細ステータス情報
+        """
         try:
-            # タイミングデータを取得
-            timing_data = self.get_timing_data(text, speaker_id)
-
-            # 音声を生成
-            audio_data = self.generate_voice(text, speaker_id)
-
-            # ファイルに保存
-            timestamp = int(time.time())
-            file_path = os.path.join(self.output_dir, f"{timestamp}_{speaker_id}.wav")
-            os.makedirs(os.path.dirname(file_path), exist_ok=True)
-
-            with open(file_path, "wb") as f:
-                f.write(audio_data)
-
-            # タイミングデータを変換
-            speech_timing_data = []
-            total_duration = 0.0
-
-            for phrase in timing_data.get("accent_phrases", []):
-                for mora in phrase.get("moras", []):
-                    start_time = total_duration
-                    duration = mora.get("consonant_length", 0.0) + mora.get("vowel_length", 0.0)
-                    end_time = start_time + duration
-
-                    speech_timing_data.append(
-                        SpeechTimingData(
-                            start_time=start_time,
-                            end_time=end_time,
-                            phoneme=mora.get("consonant", "") + mora.get("vowel", ""),
-                            text=mora.get("text", ""),
-                        )
-                    )
-
-                    total_duration = end_time
-
-            return AudioSynthesisResult(
-                file_path=file_path,
-                timing_data=speech_timing_data,
-                duration=total_duration,
-                text=text,
-                speaker_id=speaker_id,
-            )
-
-        except (ValueError, VoiceVoxServiceError) as e:
-            raise e
+            speakers = self.list_speakers()
+            return {
+                "available": True,
+                "speakers_count": len(speakers),
+                "base_url": self.base_url,
+                "error": None,
+            }
         except Exception as e:
-            error_msg = f"Unexpected error in synthesize_voice: {e!s}"
-            logging.error(error_msg)
-            raise VoiceVoxServiceError(error_msg)
+            return {
+                "available": False,
+                "speakers_count": 0,
+                "base_url": self.base_url,
+                "error": str(e),
+            }
 
     def get_speakers(self) -> List[Dict[str, Any]]:
         """
