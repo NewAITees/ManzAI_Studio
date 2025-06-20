@@ -320,35 +320,6 @@ class VoiceVoxService:
 
         return result
 
-    def get_detailed_status(self) -> Dict[str, Any]:
-        """詳細なステータス情報を取得
-
-        Returns:
-            詳細なステータス情報の辞書
-        """
-        status = {
-            "base_url": self.base_url,
-            "available": False,
-            "version": None,
-            "speakers_count": 0,
-            "error": None,
-            "response_time_ms": 0,
-        }
-
-        # 可用性チェック
-        availability = self.check_availability()
-        status.update(
-            {
-                "available": availability["available"],
-                "speakers_count": availability["speakers"],
-                "version": availability["version"],
-                "error": availability["error"],
-                "response_time_ms": availability["response_time_ms"],
-            }
-        )
-
-        return status
-
     def synthesize(self, text: str, speaker_id: int = 1) -> bytes:
         """generate_voiceのエイリアス
 
