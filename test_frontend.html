@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ManzAI Studio - 機能テスト</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+            border-bottom: 2px solid #4CAF50;
+            padding-bottom: 10px;
+        }
+        .section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background-color: #fafafa;
+        }
+        input, button, textarea {
+            padding: 10px;
+            margin: 5px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            cursor: pointer;
+            border: none;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+        .result {
+            margin: 10px 0;
+            padding: 10px;
+            border-left: 4px solid #4CAF50;
+            background-color: #f9f9f9;
+        }
+        .error {
+            border-left-color: #f44336;
+            background-color: #fef3f3;
+            color: #d32f2f;
+        }
+        .loading {
+            color: #ff9800;
+            font-style: italic;
+        }
+        pre {
+            background-color: #f4f4f4;
+            padding: 10px;
+            border-radius: 4px;
+            overflow-x: auto;
+            font-size: 12px;
+        }
+        .script-line {
+            margin: 5px 0;
+            padding: 8px;
+            border-radius: 4px;
+        }
+        .tsukkomi {
+            background-color: #e3f2fd;
+            border-left: 4px solid #2196f3;
+        }
+        .boke {
+            background-color: #fff3e0;
+            border-left: 4px solid #ff9800;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎭 ManzAI Studio 機能テスト</h1>
+
+        <!-- ヘルスチェック -->
+        <div class="section">
+            <h3>🏥 ヘルスチェック</h3>
+            <button onclick="checkHealth()">ヘルスチェック実行</button>
+            <div id="health-result" class="result" style="display:none;"></div>
+        </div>
+
+        <!-- システムステータス -->
+        <div class="section">
+            <h3>📊 システムステータス</h3>
+            <button onclick="checkStatus()">詳細ステータス取得</button>
+            <div id="status-result" class="result" style="display:none;"></div>
+        </div>
+
+        <!-- 話者一覧 -->
+        <div class="section">
+            <h3>🔊 VoiceVox話者一覧</h3>
+            <button onclick="getSpeakers()">話者一覧取得</button>
+            <div id="speakers-result" class="result" style="display:none;"></div>
+        </div>
+
+        <!-- 漫才スクリプト生成 -->
+        <div class="section">
+            <h3>🎭 漫才スクリプト生成</h3>
+            <input type="text" id="topic" placeholder="トピックを入力してください" value="お寿司">
+            <label>
+                <input type="checkbox" id="use-mock" checked> モックデータを使用
+            </label>
+            <br>
+            <button onclick="generateScript()">スクリプト生成</button>
+            <div id="script-result" class="result" style="display:none;"></div>
+        </div>
+
+        <!-- 音声ファイル一覧 -->
+        <div class="section">
+            <h3>🎵 音声ファイル管理</h3>
+            <button onclick="listAudioFiles()">音声ファイル一覧</button>
+            <button onclick="cleanupAudioFiles()">古いファイル削除</button>
+            <div id="audio-result" class="result" style="display:none;"></div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:5000/api';
+
+        async function apiCall(endpoint, options = {}) {
+            try {
+                const response = await fetch(`${API_BASE}${endpoint}`, {
+                    ...options,
+                    headers: {
+                        'Content-Type': 'application/json',
+                        ...options.headers
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+
+                return await response.json();
+            } catch (error) {
+                throw new Error(`API呼び出しエラー: ${error.message}`);
+            }
+        }
+
+        function showResult(elementId, content, isError = false) {
+            const element = document.getElementById(elementId);
+            element.style.display = 'block';
+            element.className = `result ${isError ? 'error' : ''}`;
+            element.innerHTML = content;
+        }
+
+        function showLoading(elementId, message = '処理中...') {
+            showResult(elementId, `<div class="loading">${message}</div>`);
+        }
+
+        async function checkHealth() {
+            showLoading('health-result', 'ヘルスチェック中...');
+            try {
+                const result = await apiCall('/health');
+                showResult('health-result', `✅ システムは正常です<br><pre>${JSON.stringify(result, null, 2)}</pre>`);
+            } catch (error) {
+                showResult('health-result', `❌ エラー: ${error.message}`, true);
+            }
+        }
+
+        async function checkStatus() {
+            showLoading('status-result', 'ステータス取得中...');
+            try {
+                const result = await apiCall('/detailed-status');
+                showResult('status-result', `<pre>${JSON.stringify(result, null, 2)}</pre>`);
+            } catch (error) {
+                showResult('status-result', `❌ エラー: ${error.message}`, true);
+            }
+        }
+
+        async function getSpeakers() {
+            showLoading('speakers-result', '話者一覧取得中...');
+            try {
+                const speakers = await apiCall('/speakers');
+                const speakerList = speakers.slice(0, 5).map(s =>
+                    `<li><strong>${s.name}</strong> (ID: ${s.id}) - ${s.style_name}</li>`
+                ).join('');
+                showResult('speakers-result', `<p>利用可能な話者 (最初の5名):</p><ul>${speakerList}</ul><p>総数: ${speakers.length}名</p>`);
+            } catch (error) {
+                showResult('speakers-result', `❌ エラー: ${error.message}`, true);
+            }
+        }
+
+        async function generateScript() {
+            const topic = document.getElementById('topic').value;
+            const useMock = document.getElementById('use-mock').checked;
+
+            if (!topic.trim()) {
+                showResult('script-result', '❌ トピックを入力してください', true);
+                return;
+            }
+
+            showLoading('script-result', 'スクリプト生成中...');
+            try {
+                const result = await apiCall('/generate', {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        topic: topic,
+                        use_mock: useMock
+                    })
+                });
+
+                let scriptHtml = '<h4>🎭 生成された漫才スクリプト:</h4>';
+                result.script.forEach((line, index) => {
+                    const roleClass = line.role.toLowerCase();
+                    const roleName = line.role === 'TSUKKOMI' ? 'ツッコミ' : 'ボケ';
+                    scriptHtml += `<div class="script-line ${roleClass}">
+                        <strong>${roleName}:</strong> ${line.text}
+                    </div>`;
+                });
+
+                if (result.audio_data) {
+                    scriptHtml += '<h4>🎵 音声ファイル:</h4><ul>';
+                    result.audio_data.forEach(audio => {
+                        scriptHtml += `<li>${audio.role}: ${audio.audio_file}</li>`;
+                    });
+                    scriptHtml += '</ul>';
+                }
+
+                showResult('script-result', scriptHtml);
+            } catch (error) {
+                showResult('script-result', `❌ エラー: ${error.message}`, true);
+            }
+        }
+
+        async function listAudioFiles() {
+            showLoading('audio-result', '音声ファイル一覧取得中...');
+            try {
+                const files = await apiCall('/audio/list');
+                if (files.length === 0) {
+                    showResult('audio-result', '📁 音声ファイルはありません');
+                } else {
+                    const fileList = files.map(file => `<li>${file}</li>`).join('');
+                    showResult('audio-result', `<p>音声ファイル一覧 (${files.length}件):</p><ul>${fileList}</ul>`);
+                }
+            } catch (error) {
+                showResult('audio-result', `❌ エラー: ${error.message}`, true);
+            }
+        }
+
+        async function cleanupAudioFiles() {
+            showLoading('audio-result', '古いファイルを削除中...');
+            try {
+                const result = await apiCall('/audio/cleanup', {
+                    method: 'POST',
+                    body: JSON.stringify({ max_files: 5 })
+                });
+                showResult('audio-result', `✅ ${result.deleted_files}個のファイルを削除しました<br>${result.message}`);
+            } catch (error) {
+                showResult('audio-result', `❌ エラー: ${error.message}`, true);
+            }
+        }
+
+        // ページ読み込み時にヘルスチェック実行
+        document.addEventListener('DOMContentLoaded', () => {
+            checkHealth();
+        });
+    </script>
+</body>
+</html>
