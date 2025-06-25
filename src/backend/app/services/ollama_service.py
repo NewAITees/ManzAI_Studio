@@ -469,8 +469,9 @@ class OllamaService:
         # コードブロックの抽出
         if "```" in text:
             blocks = text.split("```")
-            for block in blocks:
-                if block.strip():
+            # 奇数番目のブロック（コードブロック内）を探す
+            for i, block in enumerate(blocks):
+                if i % 2 == 1 and block.strip():  # コードブロック内（1, 3, 5...）
                     text = block.strip()
                     break
 

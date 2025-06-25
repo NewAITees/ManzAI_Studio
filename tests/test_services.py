@@ -5,6 +5,7 @@ import os
 from unittest.mock import Mock, patch
 
 import pytest
+import requests
 
 from src.backend.app.models.audio import AudioSynthesisResult, SpeechTimingData
 from src.backend.app.models.script import Role, ScriptLine
@@ -273,16 +274,18 @@ def test_generate_manzai_script_model_unavailable(ollama_service, mock_ollama_cl
             "error": None,
         }
         with pytest.raises(
-            OllamaServiceError, match="Requested model 'gemma3:4b' is not available"
+            OllamaServiceError, match="Model 'gemma3:4b' not available on local instance"
         ):
             ollama_service.generate_manzai_script("Test topic", "gemma3:4b")
 
 
-def test_generate_manzai_script_api_error(ollama_service, mock_ollama_client, mock_prompt_loader):
+def test_generate_manzai_script_api_error(ollama_service):
     """Test script generation when API returns an error."""
-    mock_ollama_client.generate_json_sync.side_effect = OllamaServiceError("API error")
-    with pytest.raises(OllamaServiceError, match="API error"):
-        ollama_service.generate_manzai_script("Test topic")
+    ollama_service.prompt_loader.load_template.return_value = "test prompt"
+    with patch.object(ollama_service.client, "generate_json_sync") as mock_generate:
+        mock_generate.side_effect = OllamaServiceError("API error")
+        with pytest.raises(OllamaServiceError, match="API error"):
+            ollama_service.generate_manzai_script("Test topic")
 
 
 def test_fallback_response(ollama_service):
@@ -452,7 +455,10 @@ def test_get_timing_data_error(voicevox_service, mock_requests):
 
 def test_synthesize_voice_success(voicevox_service, mock_requests, tmp_path):
     """Test successful voice synthesis with saved file."""
-    mock_requests.post.return_value.json.return_value = {
+    # Mock audio query response
+    audio_query_response = Mock()
+    audio_query_response.status_code = 200
+    audio_query_response.json.return_value = {
         "accent_phrases": [
             {
                 "moras": [
@@ -462,7 +468,19 @@ def test_synthesize_voice_success(voicevox_service, mock_requests, tmp_path):
             }
         ]
     }
-    mock_requests.post.return_value.content = b"test audio data"
+
+    # Mock synthesis response
+    synthesis_response = Mock()
+    synthesis_response.status_code = 200
+    synthesis_response.content = b"test audio data"
+
+    # Set up mock responses in order: get_timing_data + generate_voice (2 calls each)
+    mock_requests.post.side_effect = [
+        audio_query_response,  # get_timing_data call
+        audio_query_response,  # generate_voice first call
+        synthesis_response,  # generate_voice second call
+    ]
+
     with patch("builtins.open", create=True) as mock_open:
         result = voicevox_service.synthesize_voice("こんにちは", 1)
         assert isinstance(result, AudioSynthesisResult)
@@ -539,22 +557,26 @@ def test_list_speakers_error(voicevox_service, mock_requests):
 def test_check_availability_success(voicevox_service, mock_requests):
     """Test successful availability check."""
     mock_requests.get.return_value.text = "0.14.0"
+    mock_requests.get.return_value.status_code = 200
+
     with patch.object(voicevox_service, "list_speakers") as mock_list_speakers:
         mock_list_speakers.return_value = [
             VoiceVoxSpeaker(id=1, name="Speaker1", style_id=1, style_name="Style1"),
             VoiceVoxSpeaker(id=2, name="Speaker2", style_id=2, style_name="Style2"),
         ]
-        result = voicevox_service.check_availability()
-        assert result["available"] is True
-        assert result["speakers"] == 2
-        assert result["version"] == "0.14.0"
-        assert result["error"] is None
-        assert result["response_time_ms"] > 0
+        with patch("time.time") as mock_time:
+            mock_time.side_effect = [0.0, 0.1]  # start and end times
+            result = voicevox_service.check_availability()
+            assert result["available"] is True
+            assert result["speakers"] == 2
+            assert result["version"] == "0.14.0"
+            assert result["error"] is None
+            assert result["response_time_ms"] == 100
 
 
 def test_check_availability_error(voicevox_service, mock_requests):
     """Test availability check when API is unavailable."""
-    mock_requests.get.side_effect = Exception("Connection error")
+    mock_requests.get.side_effect = requests.exceptions.ConnectionError("Connection error")
     result = voicevox_service.check_availability()
     assert result["available"] is False
     assert result["speakers"] == 0
@@ -596,3 +618,121 @@ def test_get_fallback_audio(voicevox_service):
     assert isinstance(result, bytes)
     assert len(result) > 0
     assert len(result) > 44  # Should be a valid WAV structure
+
+
+# Additional tests for better coverage
+def test_synthesize_voice_complex_timing(voicevox_service, mock_requests, tmp_path):
+    """Test synthesize_voice with complex timing data."""
+    # Mock audio query response with multiple moras
+    audio_query_response = Mock()
+    audio_query_response.status_code = 200
+    audio_query_response.json.return_value = {
+        "accent_phrases": [
+            {
+                "moras": [
+                    {"text": "こ", "consonant_length": 0.1, "vowel_length": 0.15},
+                    {"text": "ん", "consonant_length": 0.0, "vowel_length": 0.2},
+                    {"text": "に", "consonant_length": 0.05, "vowel_length": 0.1},
+                ]
+            },
+            {
+                "moras": [
+                    {"text": "ち", "consonant_length": 0.08, "vowel_length": 0.12},
+                    {"text": "は", "consonant_length": 0.0, "vowel_length": 0.18},
+                ]
+            },
+        ]
+    }
+
+    # Mock synthesis response
+    synthesis_response = Mock()
+    synthesis_response.status_code = 200
+    synthesis_response.content = b"complex audio data"
+
+    # Set up mock responses in order: get_timing_data + generate_voice (2 calls each)
+    mock_requests.post.side_effect = [
+        audio_query_response,  # get_timing_data call
+        audio_query_response,  # generate_voice first call
+        synthesis_response,  # generate_voice second call
+    ]
+
+    with patch("builtins.open", create=True) as mock_open:
+        result = voicevox_service.synthesize_voice("こんにちは", 2)
+        assert isinstance(result, AudioSynthesisResult)
+        assert result.speaker_id == 2
+        assert result.text == "こんにちは"
+        assert len(result.timing_data) == 5  # Total moras
+        assert all(isinstance(td, SpeechTimingData) for td in result.timing_data)
+        mock_open.assert_called()
+
+
+def test_generate_voice_error_handling(voicevox_service, mock_requests):
+    """Test error handling in generate_voice method."""
+    # Test timeout error
+    mock_requests.post.side_effect = requests.exceptions.Timeout("Request timeout")
+    with pytest.raises(VoiceVoxServiceError, match="Timeout error occurred"):
+        voicevox_service.generate_voice("テスト", 1)
+
+
+def test_get_timing_data_error_handling(voicevox_service, mock_requests):
+    """Test error handling in get_timing_data method."""
+    # Test timeout error
+    mock_requests.post.side_effect = requests.exceptions.Timeout("Request timeout")
+    with pytest.raises(VoiceVoxServiceError, match="Timeout error occurred"):
+        voicevox_service.get_timing_data("テスト", 1)
+
+
+def test_list_speakers_data_validation(voicevox_service, mock_requests):
+    """Test list_speakers with various data formats."""
+    # Test with invalid speaker data format
+    mock_requests.get.return_value.json.return_value = [
+        "invalid_speaker_data",  # This should cause an error
+        {
+            "name": "四国めたん",
+            "speaker_uuid": "uuid1",
+            "styles": [{"id": 2, "name": "ノーマル"}],
+        },
+    ]
+
+    # Should handle the invalid data gracefully
+    with pytest.raises(VoiceVoxServiceError):
+        voicevox_service.list_speakers()
+
+
+def test_get_speakers_error_responses(voicevox_service, mock_requests):
+    """Test get_speakers with various error responses."""
+    # Test 404 error
+    error_response = Mock()
+    error_response.status_code = 404
+    mock_requests.get.return_value = error_response
+
+    with pytest.raises(VoiceVoxServiceError, match="VoiceVox API returned error status: 404"):
+        voicevox_service.get_speakers()
+
+    # Test request exception with Connection Error
+    mock_requests.get.side_effect = requests.exceptions.ConnectionError("Connection failed")
+    with pytest.raises(VoiceVoxServiceError, match="Connection error with VoiceVox API"):
+        voicevox_service.get_speakers()
+
+
+def test_check_availability_comprehensive(voicevox_service, mock_requests):
+    """Test comprehensive availability check scenarios."""
+    # Test successful check with detailed timing
+    mock_requests.get.return_value.text = "0.15.2"
+    mock_requests.get.return_value.status_code = 200
+
+    with patch.object(voicevox_service, "list_speakers") as mock_list_speakers:
+        mock_list_speakers.return_value = [
+            VoiceVoxSpeaker(id=1, name="Speaker1", style_id=1, style_name="Style1"),
+            VoiceVoxSpeaker(id=2, name="Speaker2", style_id=2, style_name="Style2"),
+            VoiceVoxSpeaker(id=3, name="Speaker3", style_id=3, style_name="Style3"),
+        ]
+
+        result = voicevox_service.check_availability()
+
+        assert result["available"] is True
+        assert result["speakers"] == 3
+        assert result["version"] == "0.15.2"
+        assert result["error"] is None
+        assert isinstance(result["response_time_ms"], int)
+        assert result["response_time_ms"] >= 0
