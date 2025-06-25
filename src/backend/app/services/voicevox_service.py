@@ -261,16 +261,13 @@ class VoiceVoxService:
                 logging.error(error_msg)
                 raise VoiceVoxServiceError(error_msg)
             return response.json()
-        except requests.exceptions.ConnectionError:
-            error_msg = "Connection error with VoiceVox API"
-            logging.error(error_msg)
-            raise VoiceVoxServiceError(error_msg)
-        except requests.exceptions.RequestException as e:
-            error_msg = f"Error communicating with VoiceVox API: {e!s}"
-            logging.error(error_msg)
-            raise VoiceVoxServiceError(error_msg)
         except Exception as e:
-            error_msg = f"Unexpected error in VoiceVox service: {e!s}"
+            if "ConnectionError" in str(type(e)):
+                error_msg = "Connection error with VoiceVox API"
+            elif "RequestException" in str(type(e)):
+                error_msg = f"Error communicating with VoiceVox API: {e!s}"
+            else:
+                error_msg = f"Unexpected error in VoiceVox service: {e!s}"
             logging.error(error_msg)
             raise VoiceVoxServiceError(error_msg)
 
