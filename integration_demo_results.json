@@ -1,0 +1,46 @@
+{
+  "timestamp": "2025-06-25 14:56:36",
+  "services": {
+    "Ollama": {
+      "status": "ready",
+      "models": 5
+    },
+    "VoiceVox": {
+      "status": "ready",
+      "version": "latest"
+    }
+  },
+  "script": {
+    "status": "error",
+    "error": "HTTPConnectionPool(host='localhost', port=11434): Read timed out. (read timeout=30)"
+  },
+  "voice": {
+    "status": "success",
+    "file": "demo_audio/demo_1750831033.wav",
+    "size": 122412,
+    "speaker_id": 2
+  },
+  "live2d": {
+    "status": "success",
+    "models": [
+      {
+        "name": "Bambas2",
+        "file": "sakaban.model3.json",
+        "motions": 2,
+        "textures": 1
+      },
+      {
+        "name": "Haru",
+        "file": "Haru.model3.json",
+        "motions": 27,
+        "textures": 2
+      },
+      {
+        "name": "Neko_Army",
+        "file": "neko_army.model3.json",
+        "motions": 0,
+        "textures": 1
+      }
+    ]
+  }
+}

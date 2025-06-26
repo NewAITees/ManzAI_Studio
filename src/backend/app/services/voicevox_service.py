@@ -4,7 +4,7 @@ import time
 from typing import Any, Dict, List
 
 import requests
-from requests.exceptions import ConnectionError, RequestException, Timeout
+import requests.exceptions
 
 from src.backend.app.models.audio import AudioSynthesisResult, SpeechTimingData
 from src.backend.app.models.service import VoiceVoxSpeaker
@@ -100,20 +100,15 @@ class VoiceVoxService:
                 raise VoiceVoxServiceError(error_msg)
             return synthesis_response.content
 
-        except requests.exceptions.Timeout:
-            error_msg = "Timeout error occurred while communicating with VoiceVox API"
-            logging.error(error_msg)
-            raise VoiceVoxServiceError(error_msg)
-        except requests.exceptions.ConnectionError:
-            error_msg = "Connection error with VoiceVox API"
-            logging.error(error_msg)
-            raise VoiceVoxServiceError(error_msg)
-        except requests.exceptions.RequestException as e:
-            error_msg = f"Error communicating with VoiceVox API: {e!s}"
-            logging.error(error_msg)
-            raise VoiceVoxServiceError(error_msg)
         except Exception as e:
-            error_msg = f"Unexpected error in VoiceVox service: {e!s}"
+            if "Timeout" in str(type(e)):
+                error_msg = "Timeout error occurred while communicating with VoiceVox API"
+            elif "ConnectionError" in str(type(e)):
+                error_msg = "Connection error with VoiceVox API"
+            elif "RequestException" in str(type(e)):
+                error_msg = f"Error communicating with VoiceVox API: {e!s}"
+            else:
+                error_msg = f"Unexpected error in VoiceVox service: {e!s}"
             logging.error(error_msg)
             raise VoiceVoxServiceError(error_msg)
 
@@ -148,22 +143,93 @@ class VoiceVoxService:
                 raise VoiceVoxServiceError(error_msg)
             return response.json()
 
-        except requests.exceptions.ConnectionError:
-            error_msg = "Connection error with VoiceVox API"
-            logging.error(error_msg)
-            raise VoiceVoxServiceError(error_msg)
-        except requests.exceptions.RequestException as e:
-            error_msg = f"Error communicating with VoiceVox API: {e!s}"
-            logging.error(error_msg)
-            raise VoiceVoxServiceError(error_msg)
         except Exception as e:
-            error_msg = f"Unexpected error in VoiceVox service: {e!s}"
+            if "Timeout" in str(type(e)):
+                error_msg = "Timeout error occurred while communicating with VoiceVox API"
+            elif "ConnectionError" in str(type(e)):
+                error_msg = "Connection error with VoiceVox API"
+            elif "RequestException" in str(type(e)):
+                error_msg = f"Error communicating with VoiceVox API: {e!s}"
+            else:
+                error_msg = f"Unexpected error in VoiceVox service: {e!s}"
             logging.error(error_msg)
             raise VoiceVoxServiceError(error_msg)
 
-    def synthesize_voice(self, text: str, speaker_id: int = 1) -> bytes:
+    def synthesize_voice(self, text: str, speaker_id: int = 1) -> AudioSynthesisResult:
         """
-        テキストから音声を合成します（テスト用の簡易版）。
+        テキストから音声を合成し、AudioSynthesisResultを返します。
+
+        Args:
+            text (str): 音声化するテキスト
+            speaker_id (int): 話者ID
+
+        Returns:
+            AudioSynthesisResult: 音声合成結果
+
+        Raises:
+            ValueError: テキストが空の場合、または話者IDが無効な場合
+            VoiceVoxServiceError: VoiceVoxサービスとの通信に失敗した場合
+        """
+        # タイミングデータを取得
+        timing_data_raw = self.get_timing_data(text, speaker_id)
+
+        # 音声データを生成
+        audio_data = self.generate_voice(text, speaker_id)
+
+        # タイミングデータを変換
+        timing_data = []
+        if "accent_phrases" in timing_data_raw:
+            for phrase in timing_data_raw["accent_phrases"]:
+                for mora in phrase.get("moras", []):
+                    consonant_length = mora.get("consonant_length", 0.0)
+                    vowel_length = mora.get("vowel_length", 0.0)
+                    mora_text = mora.get("text", "")
+
+                    timing_data.append(
+                        SpeechTimingData(
+                            start_time=0.0,  # 簡易実装
+                            end_time=consonant_length + vowel_length,
+                            phoneme="",  # 簡易実装
+                            text=mora_text,
+                        )
+                    )
+
+        # ファイル保存（テスト用の仮パス）
+        import uuid
+
+        file_path = f"{self.output_dir}/synthesized_{uuid.uuid4().hex[:8]}.wav"
+
+        # 実際のファイル保存
+        with open(file_path, "wb") as f:
+            f.write(audio_data)
+
+        return AudioSynthesisResult(
+            file_path=file_path,
+            timing_data=timing_data,
+            duration=sum(td.end_time for td in timing_data),
+            text=text,
+            speaker_id=speaker_id,
+        )
+
+    def get_detailed_status(self) -> Dict[str, Any]:
+        """VoiceVoxサービスの詳細ステータスを取得
+
+        Returns:
+            Dict[str, Any]: サービスの詳細ステータス情報
+        """
+        availability = self.check_availability()
+        return {
+            "base_url": self.base_url,
+            "available": availability["available"],
+            "speakers_count": availability["speakers"],
+            "version": availability.get("version", "unknown"),
+            "error": availability["error"],
+            "response_time_ms": availability.get("response_time_ms", 0),
+        }
+
+    def synthesize(self, text: str, speaker_id: int = 1) -> bytes:
+        """
+        音声合成のエイリアスメソッド（下位互換性のため）。
 
         Args:
             text (str): 音声化するテキスト
@@ -176,30 +242,7 @@ class VoiceVoxService:
             ValueError: テキストが空の場合、または話者IDが無効な場合
             VoiceVoxServiceError: VoiceVoxサービスとの通信に失敗した場合
         """
-        # generate_voiceを直接呼び出し
         return self.generate_voice(text, speaker_id)
-
-    def get_detailed_status(self) -> Dict[str, Any]:
-        """VoiceVoxサービスの詳細ステータスを取得
-
-        Returns:
-            Dict[str, Any]: サービスの詳細ステータス情報
-        """
-        try:
-            speakers = self.list_speakers()
-            return {
-                "available": True,
-                "speakers_count": len(speakers),
-                "base_url": self.base_url,
-                "error": None,
-            }
-        except Exception as e:
-            return {
-                "available": False,
-                "speakers_count": 0,
-                "base_url": self.base_url,
-                "error": str(e),
-            }
 
     def get_speakers(self) -> List[Dict[str, Any]]:
         """
@@ -218,16 +261,13 @@ class VoiceVoxService:
                 logging.error(error_msg)
                 raise VoiceVoxServiceError(error_msg)
             return response.json()
-        except requests.exceptions.ConnectionError:
-            error_msg = "Connection error with VoiceVox API"
-            logging.error(error_msg)
-            raise VoiceVoxServiceError(error_msg)
-        except requests.exceptions.RequestException as e:
-            error_msg = f"Error communicating with VoiceVox API: {e!s}"
-            logging.error(error_msg)
-            raise VoiceVoxServiceError(error_msg)
         except Exception as e:
-            error_msg = f"Unexpected error in VoiceVox service: {e!s}"
+            if "ConnectionError" in str(type(e)):
+                error_msg = "Connection error with VoiceVox API"
+            elif "RequestException" in str(type(e)):
+                error_msg = f"Error communicating with VoiceVox API: {e!s}"
+            else:
+                error_msg = f"Unexpected error in VoiceVox service: {e!s}"
             logging.error(error_msg)
             raise VoiceVoxServiceError(error_msg)
 
@@ -308,30 +348,15 @@ class VoiceVoxService:
             end_time = time.time()
             result["response_time_ms"] = int((end_time - start_time) * 1000)
 
-        except (ConnectionError, Timeout) as e:
-            result["error"] = f"Connection error: {e!s}"
-            logger.warning(f"VoiceVox service connection error: {e!s}")
-        except RequestException as e:
-            result["error"] = f"Request error: {e!s}"
-            logger.warning(f"VoiceVox service request error: {e!s}")
         except Exception as e:
-            result["error"] = f"Unexpected error: {e!s}"
-            logger.warning(f"Unexpected error checking VoiceVox availability: {e!s}")
+            if "ConnectionError" in str(type(e)) or "Timeout" in str(type(e)):
+                result["error"] = f"Connection error: {e!s}"
+                logger.warning(f"VoiceVox service connection error: {e!s}")
+            elif "RequestException" in str(type(e)):
+                result["error"] = f"Request error: {e!s}"
+                logger.warning(f"VoiceVox service request error: {e!s}")
+            else:
+                result["error"] = f"Unexpected error: {e!s}"
+                logger.warning(f"Unexpected error checking VoiceVox availability: {e!s}")
 
         return result
-
-    def synthesize(self, text: str, speaker_id: int = 1) -> bytes:
-        """generate_voiceのエイリアス
-
-        Args:
-            text: 音声化するテキスト
-            speaker_id: 話者ID
-
-        Returns:
-            bytes: 生成された音声データ
-
-        Raises:
-            ValueError: テキストが空の場合、または話者IDが不正な場合
-            VoiceVoxServiceError: サービスとの通信に失敗した場合
-        """
-        return self.generate_voice(text, speaker_id)
