@@ -1,0 +1,171 @@
+{
+  "timestamp": "2025-06-25 14:59:07",
+  "demo_type": "complete_integration",
+  "script": {
+    "lines": 8,
+    "content": [
+      {
+        "speaker": "A",
+        "text": "こんにちは！今日はAI開発について話しましょう。"
+      },
+      {
+        "speaker": "B",
+        "text": "AI開発ですか？僕、AIって人工知能のことかと思ってました。"
+      },
+      {
+        "speaker": "A",
+        "text": "それで合ってますよ。人工知能です。"
+      },
+      {
+        "speaker": "B",
+        "text": "じゃあ僕も天然知能を作ります！"
+      },
+      {
+        "speaker": "A",
+        "text": "天然知能って何ですか！"
+      },
+      {
+        "speaker": "B",
+        "text": "自然に賢くなる知能です。寝てる間に勝手に覚えます。"
+      },
+      {
+        "speaker": "A",
+        "text": "それはただの怠け者の言い訳でしょ！"
+      },
+      {
+        "speaker": "B",
+        "text": "でも効率的ですよ。ながら学習というやつです。"
+      }
+    ]
+  },
+  "audio": {
+    "generated_files": 8,
+    "total_size": 1397088,
+    "files": [
+      {
+        "line": 1,
+        "speaker": "A",
+        "speaker_id": 2,
+        "text": "こんにちは！今日はAI開発について話しましょう。",
+        "file": "demo_complete_audio/line_01_A.wav",
+        "size": 181292
+      },
+      {
+        "line": 2,
+        "speaker": "B",
+        "speaker_id": 3,
+        "text": "AI開発ですか？僕、AIって人工知能のことかと思ってました。",
+        "file": "demo_complete_audio/line_02_B.wav",
+        "size": 313900
+      },
+      {
+        "line": 3,
+        "speaker": "A",
+        "speaker_id": 2,
+        "text": "それで合ってますよ。人工知能です。",
+        "file": "demo_complete_audio/line_03_A.wav",
+        "size": 132652
+      },
+      {
+        "line": 4,
+        "speaker": "B",
+        "speaker_id": 3,
+        "text": "じゃあ僕も天然知能を作ります！",
+        "file": "demo_complete_audio/line_04_B.wav",
+        "size": 130092
+      },
+      {
+        "line": 5,
+        "speaker": "A",
+        "speaker_id": 2,
+        "text": "天然知能って何ですか！",
+        "file": "demo_complete_audio/line_05_A.wav",
+        "size": 89132
+      },
+      {
+        "line": 6,
+        "speaker": "B",
+        "speaker_id": 3,
+        "text": "自然に賢くなる知能です。寝てる間に勝手に覚えます。",
+        "file": "demo_complete_audio/line_06_B.wav",
+        "size": 233004
+      },
+      {
+        "line": 7,
+        "speaker": "A",
+        "speaker_id": 2,
+        "text": "それはただの怠け者の言い訳でしょ！",
+        "file": "demo_complete_audio/line_07_A.wav",
+        "size": 119340
+      },
+      {
+        "line": 8,
+        "speaker": "B",
+        "speaker_id": 3,
+        "text": "でも効率的ですよ。ながら学習というやつです。",
+        "file": "demo_complete_audio/line_08_B.wav",
+        "size": 197676
+      }
+    ]
+  },
+  "characters": {
+    "available_models": 3,
+    "models": [
+      {
+        "name": "Bambas2",
+        "file": "sakaban.model3.json",
+        "motions": [
+          "awa.motion3",
+          "swim.motion3"
+        ],
+        "motion_count": 2
+      },
+      {
+        "name": "Haru",
+        "file": "Haru.model3.json",
+        "motions": [
+          "haru_g_idle.motion3",
+          "haru_g_m01.motion3",
+          "haru_g_m02.motion3",
+          "haru_g_m03.motion3",
+          "haru_g_m04.motion3",
+          "haru_g_m05.motion3",
+          "haru_g_m06.motion3",
+          "haru_g_m07.motion3",
+          "haru_g_m08.motion3",
+          "haru_g_m09.motion3",
+          "haru_g_m10.motion3",
+          "haru_g_m11.motion3",
+          "haru_g_m12.motion3",
+          "haru_g_m13.motion3",
+          "haru_g_m14.motion3",
+          "haru_g_m15.motion3",
+          "haru_g_m16.motion3",
+          "haru_g_m17.motion3",
+          "haru_g_m18.motion3",
+          "haru_g_m19.motion3",
+          "haru_g_m20.motion3",
+          "haru_g_m21.motion3",
+          "haru_g_m22.motion3",
+          "haru_g_m23.motion3",
+          "haru_g_m24.motion3",
+          "haru_g_m25.motion3",
+          "haru_g_m26.motion3"
+        ],
+        "motion_count": 27
+      },
+      {
+        "name": "Neko_Army",
+        "file": "neko_army.model3.json",
+        "motions": [],
+        "motion_count": 0
+      }
+    ]
+  },
+  "integration_status": {
+    "script_ready": true,
+    "audio_generated": true,
+    "characters_available": true,
+    "full_integration_success": true
+  }
+}
