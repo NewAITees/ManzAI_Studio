@@ -4,6 +4,8 @@
 
 This guide provides detailed instructions for setting up the ManzAI Studio development environment.
 
+> **⚠️ Important Update**: This project now uses **VS Code Dev Container** as the primary development environment. The legacy Docker setup is still supported but deprecated.
+
 ## Prerequisites
 
 Before starting, ensure you have the following installed:
@@ -46,40 +48,67 @@ flowchart TD
     D6 --> Z
 ```
 
-## Docker Setup (Recommended)
+## VS Code Dev Container Setup (Recommended)
 
-The easiest way to set up the development environment is using Docker:
+The **recommended** way to set up the development environment is using VS Code Dev Container:
 
 ```bash
 # Clone the repository
 git clone https://github.com/yourusername/manzai-studio.git
 cd manzai-studio
 
-# Start development environment
-docker-compose -f docker-compose.dev.yml up -d
+# Open in VS Code
+code .
+
+# VS Code will detect the devcontainer and prompt to "Reopen in Container"
+# Click "Reopen in Container" or press F1 → "Dev Containers: Reopen in Container"
 ```
 
-This will start:
-- Flask backend server (http://localhost:5000)
-- React development server (http://localhost:3000)
-- VoiceVox engine (http://localhost:50021)
-- Ollama LLM service (http://localhost:11434)
+### Alternative Dev Container Methods
+
+```bash
+# Method 1: Docker Compose (if you prefer command line)
+docker compose up -d
+docker compose exec dev bash
+
+# Method 2: Standalone script with CLI tools
+./run-with-cli.sh
+
+# Method 3: VS Code command palette
+# F1 → "Dev Containers: Open Folder in Container"
+```
+
+This provides:
+- **Modern Python Development Environment** with uv, ruff, mypy
+- **AI CLI Tools**: Claude Code CLI, Gemini CLI  
+- **All services**: Flask backend, React frontend, VoiceVox, Ollama
+- **Port forwarding**: 3000 (frontend), 5000 (backend), 11434 (ollama), 50021 (voicevox)
+- **Persistent volumes** for dependencies and configurations
+
+## Legacy Docker Setup (Deprecated)
+
+> **⚠️ Deprecated**: The following Docker setup is deprecated. Please use Dev Container instead.
+
+```bash
+# Legacy approach (not recommended)
+docker compose up -d  # Uses new compose.yml
+
+# Old approach (removed files)
+# docker-compose -f docker-compose.dev.yml up -d  # ❌ File removed
+```
 
 ### Environment Variables
 
-The default environment variables are defined in the `docker-compose.dev.yml` file:
+Environment variables are automatically configured in the devcontainer. You can override them by creating a `.env` file in the project root:
 
-```yaml
-environment:
-  - FLASK_APP=src.app:create_app
-  - FLASK_ENV=development
-  - FLASK_DEBUG=1
-  - VOICEVOX_URL=http://voicevox:50021
-  - OLLAMA_URL=http://ollama:11434
-  - OLLAMA_MODEL=gemma3:4b
+```bash
+# .env file (optional overrides)
+FLASK_ENV=development
+FLASK_DEBUG=1
+VOICEVOX_URL=http://voicevox:50021
+OLLAMA_URL=http://ollama:11434
+OLLAMA_MODEL=gemma3:4b
 ```
-
-You can override these by creating a `.env` file in the project root.
 
 ### Downloading Required Models
 

@@ -1,0 +1,69 @@
+version: '3.8'
+services:
+  dev:
+    image: modern-python-base:latest
+    container_name: ${PROJECT_NAME:-manzai-studio}-dev
+    working_dir: /workspace
+    volumes:
+      - .:/workspace
+      - ~/.cache/uv:/home/dev/.cache/uv
+      - dev-config:/home/dev/.config
+      - dev-npm:/home/dev/.npm-global
+    ports:
+      - "8000:8000"   # Backend Development Server
+      - "3000:3000"   # Frontend Development Server
+      - "5000:5000"   # Flask API Server
+      - "11434:11434" # Ollama
+      - "50021:50021" # VoiceVox Engine
+    environment:
+      - PYTHONUNBUFFERED=1
+      - PYTHONDONTWRITEBYTECODE=1
+      - UV_CACHE_DIR=/home/dev/.cache/uv
+      - UV_COMPILE_BYTECODE=1
+      - NPM_CONFIG_PREFIX=/home/dev/.npm-global
+      - PATH=/home/dev/.npm-global/bin:${PATH}
+      - FLASK_ENV=development
+      - FLASK_DEBUG=1
+    user: dev
+    command: tail -f /dev/null
+    stdin_open: true
+    tty: true
+    networks:
+      - manzai-dev-network
+
+  # Optional: Ollama service for local LLM
+  ollama:
+    image: ollama/ollama:latest
+    container_name: ${PROJECT_NAME:-manzai-studio}-ollama
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama-data:/root/.ollama
+    environment:
+      - OLLAMA_HOST=0.0.0.0
+    networks:
+      - manzai-dev-network
+
+  # Optional: VoiceVox service for Japanese TTS
+  voicevox:
+    image: voicevox/voicevox_engine:cpu-ubuntu20.04-latest
+    container_name: ${PROJECT_NAME:-manzai-studio}-voicevox
+    ports:
+      - "50021:50021"
+    environment:
+      - VOICEVOX_CPU_NUM_THREADS=2
+    networks:
+      - manzai-dev-network
+
+volumes:
+  dev-config:
+    name: "${PROJECT_NAME:-manzai-studio}-dev-config"
+  dev-npm:
+    name: "${PROJECT_NAME:-manzai-studio}-dev-npm"
+  ollama-data:
+    name: "${PROJECT_NAME:-manzai-studio}-ollama-data"
+
+networks:
+  manzai-dev-network:
+    name: "${PROJECT_NAME:-manzai-studio}-dev-network"
+    driver: bridge

@@ -1,62 +1,100 @@
 {
-    "name": "ManzAI Studio Development",
-    "image": "mcr.microsoft.com/devcontainers/base:ubuntu",
-    "containerEnv": {
-        "PYTHONUNBUFFERED": "1",
-        "PYTHONDONTWRITEBYTECODE": "1",
-        "UV_CACHE_DIR": "${containerWorkspaceFolder}/.cache/uv",
-        "UV_COMPILE_BYTECODE": "1"
+  "name": "ManzAI Studio - Modern Python Development",
+  "image": "modern-python-base:latest",
+  "workspaceFolder": "/workspace",
+  "mounts": [
+    "source=${localWorkspaceFolder},target=/workspace,type=bind",
+    "source=${localWorkspaceFolder}/.devcontainer/cache,target=/home/dev/.cache,type=bind",
+    "source=manzai-studio-uv-cache,target=/home/dev/.cache/uv,type=volume",
+    "source=manzai-studio-npm-global,target=/home/dev/.npm-global,type=volume"
+  ],
+  "forwardPorts": [8000, 3000, 5000, 11434, 50021],
+  "portsAttributes": {
+    "8000": {
+      "label": "Backend Development Server",
+      "onAutoForward": "notify"
     },
-    "features": {
-        "ghcr.io/devcontainers/features/common-utils:2": {
-            "configureZshAsDefaultShell": true
-        },
-        "ghcr.io/va-h/devcontainers-features/uv:1": {
-            "shellAutocompletion": true
-        },
-        "ghcr.io/devcontainers/features/node:1": {
-            "version": "18"
-        },
-        "ghcr.io/devcontainers/features/docker-in-docker:2": {
-            "version": "latest",
-            "dockerDashComposeVersion": "v2"
-        },
-        "ghcr.io/anthropics/devcontainer-features/claude-code:1.0": {}
+    "3000": {
+      "label": "Frontend Development Server", 
+      "onAutoForward": "notify"
     },
-    "customizations": {
-        "vscode": {
-            "settings": {
-                "python.defaultInterpreterPath": "/workspaces/ManzAI_Studio/.venv/bin/python",
-                "python.linting.enabled": true,
-                "python.linting.ruffEnabled": true,
-                "python.formatting.provider": "black",
-                "python.analysis.typeCheckingMode": "strict"
-            },
-            "extensions": [
-                "ms-python.python",
-                "charliermarsh.ruff",
-                "ms-python.mypy-type-checker",
-                "ms-toolsai.jupyter",
-                "bradlc.vscode-tailwindcss",
-                "ms-vscode.vscode-json"
-            ]
-        }
+    "5000": {
+      "label": "Flask API Server",
+      "onAutoForward": "notify"
     },
-    "postCreateCommand": "uv sync && cd frontend && npm install",
-    "postStartCommand": "uv run pre-commit install",
-    "forwardPorts": [3000, 5000, 11434, 50021],
-    "portsAttributes": {
-        "3000": {
-            "label": "Frontend"
-        },
-        "5000": {
-            "label": "Backend API"
-        },
-        "11434": {
-            "label": "Ollama"
-        },
-        "50021": {
-            "label": "VoiceVox"
-        }
+    "11434": {
+      "label": "Ollama",
+      "onAutoForward": "notify"
+    },
+    "50021": {
+      "label": "VoiceVox Engine",
+      "onAutoForward": "notify"
     }
+  },
+  "postCreateCommand": "bash -c 'if [ -f setup-cli.sh ]; then ./setup-cli.sh; fi && if [ -f pyproject.toml ]; then uv sync --dev; fi && if [ -d frontend ]; then cd frontend && npm install; fi'",
+  "postStartCommand": "echo '🚀 ManzAI Studio Development Environment Ready!'",
+  "remoteUser": "dev",
+  "containerEnv": {
+    "PYTHONUNBUFFERED": "1",
+    "PYTHONDONTWRITEBYTECODE": "1",
+    "UV_CACHE_DIR": "/home/dev/.cache/uv",
+    "UV_COMPILE_BYTECODE": "1",
+    "NPM_CONFIG_PREFIX": "/home/dev/.npm-global",
+    "PATH": "/home/dev/.npm-global/bin:${containerEnv:PATH}",
+    "FLASK_ENV": "development",
+    "FLASK_DEBUG": "1"
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-python.python",
+        "ms-python.black-formatter",
+        "charliermarsh.ruff",
+        "ms-python.mypy-type-checker",
+        "ms-python.flake8",
+        "ms-toolsai.jupyter",
+        "bradlc.vscode-tailwindcss",
+        "esbenp.prettier-vscode",
+        "ms-vscode.vscode-json",
+        "redhat.vscode-yaml",
+        "ms-vscode.makefile-tools",
+        "ms-azuretools.vscode-docker",
+        "GitHub.copilot",
+        "GitHub.copilot-chat",
+        "ms-vscode.live-server"
+      ],
+      "settings": {
+        "python.defaultInterpreterPath": "/usr/local/bin/python",
+        "python.linting.enabled": true,
+        "python.linting.ruffEnabled": true,
+        "python.linting.flake8Enabled": false,
+        "python.formatting.provider": "black",
+        "python.terminal.activateEnvironment": false,
+        "python.testing.pytestEnabled": true,
+        "python.testing.unittestEnabled": false,
+        "python.testing.nosetestsEnabled": false,
+        "python.testing.pytestArgs": ["tests"],
+        "python.analysis.typeCheckingMode": "strict",
+        "editor.formatOnSave": true,
+        "editor.codeActionsOnSave": {
+          "source.organizeImports": true
+        },
+        "files.exclude": {
+          "**/__pycache__": true,
+          "**/*.pyc": true,
+          "**/node_modules": true,
+          "**/.pytest_cache": true,
+          "**/htmlcov": true
+        },
+        "terminal.integrated.defaultProfile.linux": "bash",
+        "terminal.integrated.profiles.linux": {
+          "bash": {
+            "path": "/bin/bash"
+          }
+        }
+      }
+    }
+  },
+  "features": {},
+  "shutdownAction": "stopContainer"
 }

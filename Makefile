@@ -1,8 +1,28 @@
-.PHONY: build up down restart logs clean test dev prod
+.PHONY: build up down restart logs clean test dev prod devcontainer
 
-# デフォルトは開発環境
+# デフォルトは開発環境 (devcontainer推奨)
 dev:
-	docker-compose -f docker-compose.dev.yml up -d
+	@echo "⚠️  Legacy dev command. Please use devcontainer instead:"
+	@echo "   code .  # Open in VS Code with devcontainer"
+	@echo "   OR"
+	@echo "   docker compose up -d  # Use new compose.yml"
+	@echo ""
+	@echo "Falling back to new compose.yml..."
+	docker compose up -d
+
+# Dev Container development (推奨)
+devcontainer:
+	@echo "🚀 Starting devcontainer development environment..."
+	@echo "Please use one of the following methods:"
+	@echo ""
+	@echo "1. VS Code Dev Container (推奨):"
+	@echo "   code .  # VS Code will detect devcontainer"
+	@echo ""
+	@echo "2. Docker Compose:"
+	@echo "   docker compose up -d && docker compose exec dev bash"
+	@echo ""
+	@echo "3. Standalone script:"
+	@echo "   ./run-with-cli.sh"
 
 # 本番環境のビルドと起動
 prod:
@@ -36,11 +56,13 @@ clean:
 test:
 	docker-compose run --rm backend poetry run pytest
 
-# Dockerイメージを完全に再ビルド
+# Dockerイメージを完全に再ビルド (devcontainer対応)
 rebuild:
-	docker-compose -f docker-compose.dev.yml down
-	docker-compose -f docker-compose.dev.yml build --no-cache
-	docker-compose -f docker-compose.dev.yml up -d
+	@echo "🔄 Rebuilding development environment..."
+	@echo "Using new compose.yml instead of legacy docker-compose.dev.yml"
+	docker compose down
+	docker compose build --no-cache
+	docker compose up -d
 
 # バックエンドログの表示
 backend-logs:
